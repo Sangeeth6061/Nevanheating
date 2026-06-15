@@ -29,8 +29,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn("h-full", "antialiased", inter.variable, poppins.variable)}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <Header />
         {children}
       </body>
