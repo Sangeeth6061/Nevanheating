@@ -1,27 +1,25 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { fetchFooter } from "@/lib/wordpress";
-import { acfImageUrl, acfLinkHref, wpUrlToPath, CONTACT_NUMBER, isPhoneNumber, telHref } from "@/lib/wp-utils";
+import {
+  acfImageUrl,
+  acfLegalLinkHref,
+  acfLinkHref,
+  wpUrlToPath,
+  CONTACT_NUMBER,
+  isPhoneNumber,
+  telHref,
+  type AcfLink,
+} from "@/lib/wp-utils";
 
-type AcfLink = { title?: string; url?: string; target?: string };
-
-type QuickLinkItem = {
-  link_label?: AcfLink;
-};
-
-type ServiceItem = {
-  add_a_service_label?: AcfLink;
-};
-
+type QuickLinkItem = { link_label?: AcfLink };
+type ServiceItem = { add_a_service_label?: AcfLink };
 type ContactItem = {
   contact_info_icon?: { url?: string } | false;
   add_a_ft_col_4_contact_info_link?: AcfLink;
   add_a_ft_col_4_contact_info_description?: string;
 };
-
-type SocialItem = {
-  add_a_social_link_?: AcfLink;
-};
+type SocialItem = { add_a_social_link_?: AcfLink };
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -54,7 +52,8 @@ function SocialIcon({ name }: { name?: string }) {
   return <TwitterIcon className="w-4 h-4" />;
 }
 
-function ContactFallbackIcon({ title, description }: { title?: string; description?: string }) {
+function ContactFallbackIcon({ title, description, isPhone }: { title?: string; description?: string; isPhone?: boolean }) {
+  if (isPhone) return <Phone className="w-4 h-4 text-[#F97316] shrink-0" />;
   const text = `${title ?? ""} ${description ?? ""}`.toLowerCase();
   if (text.includes("@")) return <Mail className="w-4 h-4 text-[#F97316] shrink-0" />;
   if (text.includes("emergency service") || text.includes("mon") || text.includes("sat")) {
@@ -70,6 +69,14 @@ function isEmergencyHighlight(title?: string) {
   return title?.toLowerCase().includes("emergency service") ?? false;
 }
 
+function splitHoursLines(description?: string): string[] {
+  if (!description) return [];
+  if (description.includes("Saturday")) {
+    return description.split(/\s{2,}|\s+(?=Saturday)/).map((line) => line.trim()).filter(Boolean);
+  }
+  return [description];
+}
+
 export default async function Footer() {
   const footerData = await fetchFooter();
   if (!footerData) return null;
@@ -79,30 +86,35 @@ export default async function Footer() {
   const quickLinksTitle = footerData.ft_col_2_title as string | undefined;
   const servicesTitle = footerData.ft_col_3_title as string | undefined;
   const contactTitle = footerData.ft_col_4_title as string | undefined;
+  const copyright = footerData.copyright_part as string | undefined;
+  const privacyLink = footerData.pr as AcfLink | undefined;
+  const termsLink = footerData.terms_of_services as AcfLink | undefined;
 
   const quickLinks = (footerData.quick_links as QuickLinkItem[] | undefined) ?? [];
   const serviceLinks = (footerData.add_services as ServiceItem[] | undefined) ?? [];
   const contactItems = (footerData.add_contact_info as ContactItem[] | undefined) ?? [];
   const socialIcons = (footerData.social_icons as SocialItem[] | undefined) ?? [];
 
+  const showBottomBar = copyright || privacyLink?.title || termsLink?.title;
+
   return (
     <footer className="bg-[#1a2b4d] text-white w-full">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 py-14 lg:py-16">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-12 sm:py-14 lg:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           {/* Column 1 — Company */}
-          <div className="flex flex-col">
+          <div className="flex flex-col sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-block mb-5">
               {logoUrl ? (
-                <img src={logoUrl} alt="Nevan Plumbing and Heating" className="h-14 w-auto object-contain" />
+                <img src={logoUrl} alt="Nevan Plumbing and Heating" className="h-12 sm:h-14 w-auto object-contain" />
               ) : (
                 <span className="font-bold text-lg">Nevan Plumbing &amp; Heating</span>
               )}
             </Link>
             {companyDescription && (
-              <p className="text-slate-300 text-sm leading-relaxed mb-6">{companyDescription}</p>
+              <p className="text-slate-300 text-sm leading-relaxed mb-6 max-w-md">{companyDescription}</p>
             )}
             {socialIcons.length > 0 && (
-              <div className="flex items-center gap-3 mt-auto">
+              <div className="flex items-center gap-3">
                 {socialIcons.map((item, index) => {
                   const link = item.add_a_social_link_;
                   if (!link?.url && !link?.title) return null;
@@ -171,7 +183,7 @@ export default async function Footer() {
 
           {/* Column 4 — Contact */}
           {contactItems.length > 0 && contactTitle && (
-            <div>
+            <div className="sm:col-span-2 lg:col-span-1">
               <h3 className="font-bold text-base mb-5">{contactTitle}</h3>
               <ul className="space-y-4">
                 {contactItems.map((item, index) => {
@@ -188,13 +200,14 @@ export default async function Footer() {
                   const isEmail = href.startsWith("mailto:");
                   const isClickable = isPhone || isEmail || (link?.url && link.url.startsWith("http"));
                   const highlight = isEmergencyHighlight(title);
+                  const hourLines = highlight ? splitHoursLines(description) : [];
 
                   const content = (
                     <div className="flex items-start gap-3">
-                      {iconUrl ? (
-                        <img src={iconUrl} alt="" className="w-4 h-4 object-contain shrink-0 mt-0.5" />
+                      {isPhone || !iconUrl ? (
+                        <ContactFallbackIcon title={title} description={description} isPhone={isPhone} />
                       ) : (
-                        <ContactFallbackIcon title={title} description={description} />
+                        <img src={iconUrl} alt="" className="w-4 h-4 object-contain shrink-0 mt-0.5 brightness-0 saturate-100 invert-[.65] sepia hue-rotate-[350deg]" />
                       )}
                       <div className="min-w-0">
                         <span
@@ -204,14 +217,24 @@ export default async function Footer() {
                         >
                           {displayTitle}
                         </span>
-                        {description && (
-                          <span
-                            className={`block text-sm mt-1 leading-relaxed ${
-                              highlight ? "text-slate-300" : "text-slate-400"
-                            }`}
-                          >
-                            {description}
-                          </span>
+                        {highlight && hourLines.length > 0 ? (
+                          <div className="mt-1 space-y-0.5">
+                            {hourLines.map((line, lineIndex) => (
+                              <span key={lineIndex} className="block text-sm text-slate-300 leading-relaxed">
+                                {line}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          description && (
+                            <span
+                              className={`block text-sm mt-1 leading-relaxed ${
+                                isPhone ? "text-slate-400" : highlight ? "text-slate-300" : "text-slate-400"
+                              }`}
+                            >
+                              {description}
+                            </span>
+                          )
                         )}
                       </div>
                     </div>
@@ -234,6 +257,27 @@ export default async function Footer() {
           )}
         </div>
       </div>
+
+      {/* Bottom bar */}
+      {showBottomBar && (
+        <div className="border-t border-slate-700/60 bg-[#152238]">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            {copyright && <p className="text-slate-400 text-sm">{copyright}</p>}
+            <div className="flex items-center gap-4 sm:gap-6 text-sm">
+              {privacyLink?.title && (
+                <Link href={acfLegalLinkHref(privacyLink)} className="text-slate-400 hover:text-white transition-colors">
+                  {privacyLink.title}
+                </Link>
+              )}
+              {termsLink?.title && (
+                <Link href={acfLegalLinkHref(termsLink)} className="text-slate-400 hover:text-white transition-colors">
+                  {termsLink.title}
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </footer>
   );
 }

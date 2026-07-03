@@ -53,6 +53,24 @@ export function acfImageUrl(image?: { url?: string } | false | null): string | u
   return image.url;
 }
 
+export function acfLegalLinkHref(link?: AcfLink | null): string {
+  if (!link?.title) return "#";
+  const url = link.url?.trim() ?? "";
+  if (url.startsWith("mailto:") || url.startsWith("tel:")) return url;
+
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    try {
+      const parsed = new URL(url);
+      const looksValid = parsed.hostname.includes(".") && !parsed.hostname.includes(" ");
+      if (looksValid) return wpUrlToPath(url);
+    } catch {
+      // fall through to slug path
+    }
+  }
+
+  return wpUrlToPath(`/${titleToSlug(link.title)}`);
+}
+
 export function titleToSlug(title: string): string {
   return title
     .toLowerCase()
