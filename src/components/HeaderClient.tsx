@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Phone, ChevronDown, Flame } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { wpUrlToPath } from "@/lib/wp-utils";
 
 export default function HeaderClient({ headerData }: { headerData: any }) {
   const [showTopRow, setShowTopRow] = useState(true);
@@ -98,28 +97,37 @@ export default function HeaderClient({ headerData }: { headerData: any }) {
         </div>
 
         <nav className="hidden lg:flex items-center gap-8 font-semibold text-[15px] text-[#1e3a8a]">
-          {headerData.menu?.map((item: any, i: number) => {
-            const isHome = item.page_name.toLowerCase() === 'home';
+          {headerData.menu?.map((item: { page_name: string; page_link?: { url?: string } }, i: number) => {
+            const isHome = item.page_name.toLowerCase() === "home";
+            const href = wpUrlToPath(item.page_link?.url);
             return (
-              <Link 
-                key={i} 
-                href={item.page_link?.url || "#"} 
-                className={`${isHome ? 'text-[#2563EB]' : 'hover:text-[#2563EB]'} transition-colors flex items-center gap-1`}
+              <Link
+                key={i}
+                href={href}
+                className={`${isHome ? "text-[#2563EB]" : "hover:text-[#2563EB]"} transition-colors flex items-center gap-1`}
               >
                 {item.page_name}
-                {item.page_name.toLowerCase() === 'services' && <ChevronDown className="w-4 h-4 opacity-70" />}
+                {item.page_name.toLowerCase() === "services" && <ChevronDown className="w-4 h-4 opacity-70" />}
               </Link>
-            )
+            );
           })}
         </nav>
 
         <div className="flex items-center gap-6">
-          <a href={`tel:${headerData.contact_number?.replace(/\s+/g, '')}`} className="hidden md:flex items-center gap-2 text-[15px] font-semibold text-[#2563EB] hover:text-blue-800 transition-colors">
-            <Phone className="h-4 w-4" />
-            Call Now
-          </a>
-          <Link href={headerData.button_link?.url || "#"} className="inline-flex items-center justify-center bg-[#2563EB] hover:bg-blue-800 text-white rounded-[8px] px-6 py-5 shadow-sm text-[15px] font-medium">
-            {headerData.button_text || "Get a Quote"}
+          {headerData.contact_number && (
+            <a
+              href={`tel:${headerData.contact_number.replace(/\s+/g, "")}`}
+              className="hidden md:flex items-center gap-2 text-[15px] font-semibold text-[#2563EB] hover:text-blue-800 transition-colors"
+            >
+              <Phone className="h-4 w-4" />
+              Call Now
+            </a>
+          )}
+          <Link
+            href={wpUrlToPath(headerData.button_link?.url)}
+            className="inline-flex items-center justify-center bg-[#2563EB] hover:bg-blue-800 text-white rounded-[8px] px-6 py-5 shadow-sm text-[15px] font-medium"
+          >
+            {headerData.button_text}
           </Link>
         </div>
       </header>

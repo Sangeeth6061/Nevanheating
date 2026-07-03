@@ -1,93 +1,55 @@
-const NEXT_PUBLIC_WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL;
+const NEXT_PUBLIC_WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL?.replace(/\/$/, "");
 
-export async function fetchPosts() {
+async function wpFetch<T>(path: string): Promise<T | null> {
   if (!NEXT_PUBLIC_WORDPRESS_URL) {
     console.warn("NEXT_PUBLIC_WORDPRESS_URL is not defined in .env.local");
-    return [];
+    return null;
   }
 
   try {
-    const res = await fetch(`${NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wp/v2/posts?_embed`, {
-      next: { revalidate: 60 } // Revalidate every 60 seconds
+    const res = await fetch(`${NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wp/v2/${path}`, {
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch posts: ${res.statusText}`);
+      throw new Error(`Failed to fetch ${path}: ${res.statusText}`);
     }
 
-    const data = await res.json();
-    return data;
+    return (await res.json()) as T;
   } catch (error) {
-    console.error("Error fetching WordPress posts:", error);
-    return [];
+    console.error(`Error fetching WordPress ${path}:`, error);
+    return null;
   }
+}
+
+export async function fetchPosts() {
+  return (await wpFetch<unknown[]>("posts?_embed")) ?? [];
 }
 
 export async function fetchServices() {
-  if (!NEXT_PUBLIC_WORDPRESS_URL) {
-    console.warn("NEXT_PUBLIC_WORDPRESS_URL is not defined in .env.local");
-    return [];
-  }
-
-  try {
-    const res = await fetch(`${NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wp/v2/service?_embed`, {
-      next: { revalidate: 60 }
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch services: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching WordPress services:", error);
-    return [];
-  }
+  return (await wpFetch<unknown[]>("service?_embed")) ?? [];
 }
 
 export async function fetchHomePage() {
-  if (!NEXT_PUBLIC_WORDPRESS_URL) {
-    return [];
-  }
+  return (await wpFetch<unknown[]>("pages?slug=home&_embed")) ?? [];
+}
 
-  try {
-    const res = await fetch(`${NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wp/v2/pages?slug=home&_embed`, {
-      next: { revalidate: 60 }
-    });
+export async function fetchPageBySlug(slug: string) {
+  const pages = (await wpFetch<unknown[]>(`pages?slug=${slug}&_embed`)) ?? [];
+  return pages[0] ?? null;
+}
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch home page: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching WordPress home page:", error);
-    return [];
-  }
+export async function fetchServiceBySlug(slug: string) {
+  const services = (await wpFetch<unknown[]>(`service?slug=${slug}&_embed`)) ?? [];
+  return services[0] ?? null;
 }
 
 export async function fetchHeader() {
-  if (!NEXT_PUBLIC_WORDPRESS_URL) {
-    return null;
-  }
+  const data = await wpFetch<Array<{ acf?: Record<string, unknown> }>>("header?_embed");
+  return data?.[0]?.acf ?? null;
+}
 
-  try {
-    const res = await fetch(`${NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wp/v2/header?_embed`, {
-      next: { revalidate: 60 }
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch header: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    // Assuming the header we want is the first one or we can search by a specific slug, 
-    // but the endpoint returns an array. Let's return the first item's ACF fields.
-    return data?.[0]?.acf || null;
-  } catch (error) {
-    console.error("Error fetching WordPress header:", error);
-    return null;
-  }
+export async function fetchFooter() {
+  const data = await wpFetch<Array<{ acf?: Record<string, unknown> }>>("footer?_embed");
+  return data?.[0]?.acf ?? null;
 }
