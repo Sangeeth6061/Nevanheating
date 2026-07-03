@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Phone, Check, Award, Star } from "lucide-react";
+import { telHref } from "@/lib/wp-utils";
 
 interface Feature {
   slider_2_icon?: { url: string };
@@ -98,7 +99,7 @@ export default function HeroSlider({
                   )}
                   {contactNumber && (
                     <a
-                      href={`tel:${contactNumber.replace(/\s+/g, "")}`}
+                      href={telHref(contactNumber)}
                       className="inline-flex items-center justify-center gap-2 text-[#1e40af] border border-[#1e3a8a]/20 hover:bg-blue-50 rounded-xl px-8 h-14 shadow-sm text-[16px] font-semibold bg-white transition-colors"
                     >
                       <Phone className="w-5 h-5 text-[#2563EB]" />

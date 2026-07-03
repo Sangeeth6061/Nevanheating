@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { fetchFooter } from "@/lib/wordpress";
-import { acfImageUrl, acfLinkHref, wpUrlToPath } from "@/lib/wp-utils";
+import { acfImageUrl, acfLinkHref, wpUrlToPath, CONTACT_NUMBER, isPhoneNumber, telHref } from "@/lib/wp-utils";
 
 type AcfLink = { title?: string; url?: string; target?: string };
 
@@ -181,8 +181,10 @@ export default async function Footer() {
                   const title = link?.title;
                   if (!title) return null;
 
-                  const href = acfLinkHref(link);
-                  const isPhone = href.startsWith("tel:");
+                  const rawHref = acfLinkHref(link);
+                  const isPhone = isPhoneNumber(title) || rawHref.startsWith("tel:");
+                  const displayTitle = isPhone ? CONTACT_NUMBER : title;
+                  const href = isPhone ? telHref(CONTACT_NUMBER) : rawHref;
                   const isEmail = href.startsWith("mailto:");
                   const isClickable = isPhone || isEmail || (link?.url && link.url.startsWith("http"));
                   const highlight = isEmergencyHighlight(title);
@@ -200,7 +202,7 @@ export default async function Footer() {
                             highlight ? "text-[#F97316] font-semibold" : "text-white"
                           }`}
                         >
-                          {title}
+                          {displayTitle}
                         </span>
                         {description && (
                           <span

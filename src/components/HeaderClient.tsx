@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Phone, ChevronDown, Flame } from "lucide-react";
 import Link from "next/link";
-import { wpUrlToPath } from "@/lib/wp-utils";
+import { wpUrlToPath, CONTACT_NUMBER, telHref } from "@/lib/wp-utils";
 
 export default function HeaderClient({ headerData }: { headerData: any }) {
   const [showTopRow, setShowTopRow] = useState(true);
@@ -71,9 +71,9 @@ export default function HeaderClient({ headerData }: { headerData: any }) {
         <div>{headerData.tag_line}</div>
         <div className="flex items-center gap-4 lg:gap-6">
           <div className="hidden md:block border-r border-slate-400/30 pr-4 lg:pr-6">{headerData.opening_hours}</div>
-          <a href={`tel:${headerData.contact_number?.replace(/\s+/g, '')}`} className="flex items-center gap-2 text-[#F97316] font-semibold hover:text-orange-400 transition-colors">
+          <a href={telHref(CONTACT_NUMBER)} className="flex items-center gap-2 text-[#F97316] font-semibold hover:text-orange-400 transition-colors">
             <Phone className="w-3.5 h-3.5" />
-            {headerData.contact_number}
+            {CONTACT_NUMBER}
           </a>
         </div>
       </div>
@@ -114,15 +114,13 @@ export default function HeaderClient({ headerData }: { headerData: any }) {
         </nav>
 
         <div className="flex items-center gap-6">
-          {headerData.contact_number && (
-            <a
-              href={`tel:${headerData.contact_number.replace(/\s+/g, "")}`}
-              className="hidden md:flex items-center gap-2 text-[15px] font-semibold text-[#2563EB] hover:text-blue-800 transition-colors"
-            >
+          <a
+            href={telHref(CONTACT_NUMBER)}
+            className="hidden md:flex items-center gap-2 text-[15px] font-semibold text-[#2563EB] hover:text-blue-800 transition-colors"
+          >
               <Phone className="h-4 w-4" />
               Call Now
-            </a>
-          )}
+          </a>
           <Link
             href={wpUrlToPath(headerData.button_link?.url)}
             className="inline-flex items-center justify-center bg-[#2563EB] hover:bg-blue-800 text-white rounded-[8px] px-6 py-5 shadow-sm text-[15px] font-medium"

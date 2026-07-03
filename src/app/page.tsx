@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Flame, Wrench, Zap, Droplet, Bath, ShieldCheck, Check } from "lucide-react";
 import { fetchHomePage, fetchHeader, fetchServices } from "@/lib/wordpress";
-import { findMenuPath, findServicePath, wpUrlToPath } from "@/lib/wp-utils";
+import { findMenuPath, findServicePath, wpUrlToPath, CONTACT_NUMBER, telHref } from "@/lib/wp-utils";
 import HeroSlider from "@/components/HeroSlider";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
@@ -110,7 +110,7 @@ export default async function Home() {
 
   const quoteButtonText = headerData?.button_text as string | undefined;
   const quoteLink = wpUrlToPath((headerData?.button_link as { url?: string } | undefined)?.url);
-  const contactNumber = headerData?.contact_number as string | undefined;
+  const contactNumber = CONTACT_NUMBER;
 
   const section2Eyebrow = acfStr(homeData, "2nd_section_what_we_do");
   const section2Title = acfStr(homeData, "2nd_section_title");
@@ -365,7 +365,7 @@ export default async function Home() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
                 {contactNumber && (
                   <a
-                    href={`tel:${contactNumber.replace(/\s+/g, "")}`}
+                    href={telHref(contactNumber)}
                     className="inline-flex items-center justify-center gap-2.5 bg-white text-[#2563EB] font-semibold text-[15px] px-7 py-3.5 rounded-lg shadow-sm hover:bg-slate-50 transition-colors"
                   >
                     {section5CallIcon ? (

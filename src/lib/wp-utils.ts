@@ -22,6 +22,14 @@ function normalizeHomePath(path: string): string {
   return path || "/";
 }
 
+export const CONTACT_NUMBER =
+  process.env.NEXT_PUBLIC_CONTACT_NUMBER?.trim() || "+44 7720 843384";
+
+export function isPhoneNumber(value?: string | null): boolean {
+  if (!value) return false;
+  return /^\+?[\d\s()-]+$/.test(value.trim());
+}
+
 export function telHref(number?: string | null): string {
   if (!number) return "#";
   return `tel:${number.replace(/\s+/g, "")}`;
