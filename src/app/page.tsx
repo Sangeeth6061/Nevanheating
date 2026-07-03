@@ -1,6 +1,7 @@
-import { Flame, Wrench, Zap, Droplet, Bath, ShieldCheck } from "lucide-react";
-import { fetchHomePage } from "@/lib/wordpress";
+import { Flame, Wrench, Zap, Droplet, Bath, ShieldCheck, Check } from "lucide-react";
+import { fetchHomePage, fetchHeader } from "@/lib/wordpress";
 import HeroSlider from "@/components/HeroSlider";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
 const getIconColorClasses = (iconUrl: string, iconName?: string) => {
   const url = iconUrl ? iconUrl.toLowerCase() : "";
@@ -105,11 +106,51 @@ const FALLBACK_SERVICES = [
   }
 ];
 
+const FALLBACK_POINTS = [
+  {
+    title: "Gas Safe Registered",
+    description: "All engineers fully Gas Safe registered for your peace of mind.",
+  },
+  {
+    title: "24/7 Emergency Response",
+    description: "We're available around the clock for plumbing emergencies.",
+  },
+  {
+    title: "No Hidden Costs",
+    description: "Clear, upfront quotes with no surprise charges. Honest pricing.",
+  },
+  {
+    title: "5-Star Rated Service",
+    description: "100+ five-star reviews — our reputation speaks for itself.",
+  }
+];
+
+const FALLBACK_TESTIMONIALS = [
+  {
+    "4th_section_customer_message": "\"Absolutely outstanding service. Nevan replaced our old boiler quickly and professionally. Friendly, tidy, and fair price. Highly recommend!\"",
+    "4th_section_user_image": "SM",
+    "4th_section_full_name": "Sarah Mitchell",
+    "$th_section_full_name": "Edinburgh",
+  },
+  {
+    "4th_section_customer_message": "\"Called for an emergency leak at 10pm. Arrived within the hour and fixed in no time. Exceptional service and very reasonably priced.\"",
+    "4th_section_user_image": "JR",
+    "4th_section_full_name": "James Robertson",
+    "$th_section_full_name": "Leith",
+  },
+  {
+    "4th_section_customer_message": "\"Had a full central heating system installed. Professional, respectful of our home, completed on time. Could not be happier.\"",
+    "4th_section_user_image": "ET",
+    "4th_section_full_name": "Emma Thompson",
+    "$th_section_full_name": "Morningside",
+  },
+];
+
 export default async function Home() {
-  // Dynamically fetch results from WordPress endpoints
-  const homePages = await fetchHomePage();
+  const [homePages, headerData] = await Promise.all([fetchHomePage(), fetchHeader()]);
   const homeData = homePages?.[0]?.acf || null;
 
+  // Services section variables
   const whatWeDo = homeData?.["2nd_section_what_we_do"] || "WHAT WE DO";
   const sectionTitle = homeData?.["2nd_section_title"] || "Our Plumbing & Heating Services";
   const sectionDescription = homeData?.["2nd_section_description"] || "We provide a comprehensive range of plumbing, heating, and gas services across Edinburgh. From boiler installs to emergency repairs, our experts are here to help.";
@@ -119,6 +160,39 @@ export default async function Home() {
     : FALLBACK_SERVICES;
 
   const viewAllBtnText = homeData?.view_all_services_button || "View All Services";
+
+  // Why Choose Us variables
+  const whyChooseUsImageUrl = homeData?.["3rd_section_image"]?.url || null;
+  const whyChooseUsYears = homeData?.["3rd_section_years_of_experiance"] || "15+";
+  const whyChooseUsYearsText = homeData?.["years_of_experiance_text"] || "Years of Experience";
+  const whyChooseUsTitle = homeData?.["3rd_section_title"] || "Why Choose Us";
+  const whyChooseUsSubTitle = homeData?.["3rd_section_sub_title"] || "Edinburgh's Most Trusted Plumbing Specialists";
+  const whyChooseUsTextArea = homeData?.["3rd_section_text_area"] || "With over 15 years serving Edinburgh, Nevan Plumbing and Heating has built a reputation for quality, reliability, and honest service.";
+
+  const whyChooseUsPoints =
+    homeData?.["add_3rd_section_why_choose_us_points"]?.length > 0
+      ? homeData["add_3rd_section_why_choose_us_points"]
+      : FALLBACK_POINTS;
+
+  // Reviews section variables
+  const reviewsTitle = homeData?.["4th_section_title"] || "Reviews";
+  const reviewsSubTitle = homeData?.["4th_section_sub_title"] || "What Our Customers Say";
+  const testimonials =
+    homeData?.["4th_sectioon_testimonials"]?.length > 0
+      ? homeData["4th_sectioon_testimonials"]
+      : FALLBACK_TESTIMONIALS;
+
+  // CTA banner variables
+  const ctaTitle = homeData?.["5th_section_banner_title"] || "Need a Plumber or Heating Engineer?";
+  const ctaDescription =
+    homeData?.["5th_section_banner_description"] ||
+    "Contact us today for a free, no-obligation quote.";
+  const ctaCallIconUrl = homeData?.["5th_section_call_icon"]?.url || null;
+  const ctaCallButtonText = homeData?.["5th_section_"] || "Call Now";
+  const ctaQuoteButtonText = homeData?.["5th_section_2nd_button_link"] || "Get a Free Quote";
+  const ctaQuoteButtonIconUrl = homeData?.["5th_section_2nd_button_image"]?.url || null;
+  const contactNumber = headerData?.contact_number || "+44 123 456 7890";
+  const quoteLink = headerData?.button_link?.url || "#";
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-slate-900">
@@ -216,6 +290,152 @@ export default async function Home() {
           </a>
         </div>
       </main>
+
+      {/* Why Choose Us Section */}
+      <section className="bg-[#F8F9FA] py-20 lg:py-24 w-full">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Left Column — image with experience badge */}
+            <div className="relative flex justify-center lg:justify-start">
+              <div className="relative w-full max-w-[540px]">
+                <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] bg-slate-100">
+                  {whyChooseUsImageUrl ? (
+                    <img
+                      src={whyChooseUsImageUrl}
+                      alt={whyChooseUsSubTitle}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Flame className="w-16 h-16 text-slate-300" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="absolute -bottom-5 right-4 sm:right-6 bg-[#2563EB] text-white rounded-2xl px-7 py-5 shadow-[0_12px_40px_rgba(37,99,235,0.35)] min-w-[160px] z-10">
+                  <span className="block text-[42px] font-extrabold leading-none mb-1 font-heading">
+                    {whyChooseUsYears}
+                  </span>
+                  <span className="block text-sm font-semibold text-white/95 leading-snug">
+                    {whyChooseUsYearsText}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column — heading and feature points */}
+            <div className="flex flex-col items-start lg:pl-4 xl:pl-8">
+              <span className="text-sm font-bold uppercase tracking-wider text-[#2563EB] mb-3 block">
+                {whyChooseUsTitle}
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-[42px] leading-[1.15] font-extrabold text-[#1E293B] tracking-tight mb-5 font-heading">
+                {whyChooseUsSubTitle}
+              </h2>
+              <p className="text-[#64748B] text-base md:text-lg leading-relaxed mb-10 max-w-xl">
+                {whyChooseUsTextArea}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-8 w-full">
+                {whyChooseUsPoints.map((point: Record<string, unknown>, index: number) => {
+                  const pTitle =
+                    (point["3rd_section_point_title"] as string | undefined) ||
+                    (point.title as string | undefined);
+                  const pDesc =
+                    (point["3rd_section_point_description"] as string | undefined) ||
+                    (point.description as string | undefined);
+                  const pImgUrl =
+                    (point["3rd_section_point_image"] as { url?: string } | undefined)?.url ||
+                    (point.imageUrl as string | undefined);
+
+                  return (
+                    <div key={index} className="flex items-start gap-4">
+                      <div className="w-11 h-11 rounded-full bg-[#EDF5FF] border border-[#DDECFF] flex items-center justify-center shrink-0">
+                        {pImgUrl ? (
+                          <img src={pImgUrl} alt="" className="w-5 h-5 object-contain" />
+                        ) : (
+                          <Check className="w-5 h-5 text-[#2563EB]" strokeWidth={3} />
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <h4 className="font-bold text-[#1E293B] text-base leading-snug mb-1.5">
+                          {pTitle}
+                        </h4>
+                        <p className="text-[#64748B] text-sm leading-relaxed">
+                          {pDesc}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="bg-white py-20 lg:py-24 w-full">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16">
+          <div className="text-center mb-14 lg:mb-16">
+            <span className="text-sm font-bold uppercase tracking-wider text-[#2563EB] mb-3 block">
+              {reviewsTitle}
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-[36px] font-extrabold text-[#1E3A8A] tracking-tight font-heading">
+              {reviewsSubTitle}
+            </h2>
+          </div>
+
+          <TestimonialsCarousel testimonials={testimonials} />
+        </div>
+      </section>
+
+      {/* CTA Banner Section */}
+      <section className="bg-[#2563EB] w-full">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 py-14 lg:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-12">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl md:text-3xl lg:text-[32px] font-extrabold text-white leading-tight font-heading">
+                {ctaTitle}
+              </h2>
+              <p className="text-white/90 text-base md:text-lg mt-3 leading-relaxed">
+                {ctaDescription}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
+              <a
+                href={`tel:${contactNumber.replace(/\s+/g, "")}`}
+                className="inline-flex items-center justify-center gap-2.5 bg-white text-[#2563EB] font-semibold text-[15px] px-7 py-3.5 rounded-lg shadow-sm hover:bg-slate-50 transition-colors"
+              >
+                {ctaCallIconUrl ? (
+                  <img src={ctaCallIconUrl} alt="" className="w-5 h-5 object-contain" />
+                ) : (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
+                  </svg>
+                )}
+                <span>{ctaCallButtonText}</span>
+              </a>
+
+              <a
+                href={quoteLink}
+                className="inline-flex items-center justify-center gap-2.5 border-2 border-white text-white font-semibold text-[15px] px-7 py-3.5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <span>{ctaQuoteButtonText}</span>
+                {ctaQuoteButtonIconUrl ? (
+                  <img
+                    src={ctaQuoteButtonIconUrl}
+                    alt=""
+                    className="w-4 h-4 object-contain brightness-0 invert"
+                  />
+                ) : (
+                  <span className="text-lg leading-none">&rarr;</span>
+                )}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
