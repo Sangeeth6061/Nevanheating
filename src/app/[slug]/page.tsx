@@ -30,7 +30,7 @@ function acfStr(data: Record<string, unknown> | undefined, key: string): string 
 function acfImageField(
   data: Record<string, unknown> | undefined,
   key: string
-): { url?: string } | false | undefined {
+): { url?: string } | undefined {
   const value = data?.[key];
   if (value === false || value === null || value === undefined) return undefined;
   return value as { url?: string };
@@ -40,7 +40,7 @@ type HeroAcf = {
   title?: string;
   description?: string;
   breadcrumbsText?: string;
-  breadcrumbsIcon?: { url?: string } | false | undefined;
+  breadcrumbsIcon?: { url?: string } | undefined;
   fallbackTitle?: boolean;
 };
 
@@ -118,14 +118,14 @@ function parseAboutStoryPoints(acf?: Record<string, unknown>): AboutStoryPoint[]
   if (!Array.isArray(items)) return [];
 
   return items
-    .map((item) => {
+    .map((item): AboutStoryPoint => {
       const row = item as Record<string, unknown>;
       const icon = row.about_2nd_section_points as { url?: string } | undefined;
       const text =
         typeof row.about_2nd_sec_add_a_text === "string" ? row.about_2nd_sec_add_a_text : undefined;
       return { text, iconUrl: icon?.url };
     })
-    .filter((point): point is AboutStoryPoint => Boolean(point.text));
+    .filter((point) => Boolean(point.text));
 }
 
 function PageWithHero({

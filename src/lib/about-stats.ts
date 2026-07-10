@@ -40,7 +40,7 @@ export function parseAboutStats(acf?: Record<string, unknown> | null): AboutStat
   if (!items) return [];
 
   return items
-    .map((item, index) => {
+    .map((item, index): AboutStatItem | null => {
       const row = item as Record<string, unknown>;
       const icon = firstField(row, ICON_KEYS) as { url?: string } | undefined;
       const value = acfStr(firstField(row, VALUE_KEYS));
