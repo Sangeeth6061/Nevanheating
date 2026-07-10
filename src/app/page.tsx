@@ -124,12 +124,6 @@ export default async function Home() {
   const section3YearsLabel = acfStr(homeData, "years_of_experiance_text");
   const section4Title = acfStr(homeData, "4th_section_title");
   const section4SubTitle = acfStr(homeData, "4th_section_sub_title");
-  const section5Title = acfStr(homeData, "5th_section_banner_title");
-  const section5Description = acfStr(homeData, "5th_section_banner_description");
-  const section5CallLabel = acfStr(homeData, "5th_section_");
-  const section5SecondButtonLabel = acfStr(homeData, "5th_section_2nd_button_link");
-  const section5CallIcon = (homeData?.["5th_section_call_icon"] as { url?: string } | undefined)?.url;
-  const section5SecondButtonImage = (homeData?.["5th_section_2nd_button_image"] as { url?: string } | undefined)?.url;
   const section3Image = (homeData?.["3rd_section_image"] as { url?: string } | undefined)?.url;
 
   const slider = homeData?.slider as unknown[] | undefined;
@@ -343,65 +337,6 @@ export default async function Home() {
             </div>
 
             <TestimonialsCarousel testimonials={testimonials} />
-          </div>
-        </section>
-      )}
-
-      {section5Title && (
-        <section className="bg-[#2563EB] w-full">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 py-14 lg:py-16">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-12">
-              <div className="max-w-2xl">
-                <h2 className="text-2xl md:text-3xl lg:text-[32px] font-extrabold text-white leading-tight font-heading">
-                  {section5Title}
-                </h2>
-                {section5Description && (
-                  <p className="text-white/90 text-base md:text-lg mt-3 leading-relaxed">
-                    {section5Description}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
-                {contactNumber && (
-                  <a
-                    href={telHref(contactNumber)}
-                    className="inline-flex items-center justify-center gap-2.5 bg-white text-[#2563EB] font-semibold text-[15px] px-7 py-3.5 rounded-lg shadow-sm hover:bg-slate-50 transition-colors"
-                  >
-                    {section5CallIcon ? (
-                      <img
-                        src={section5CallIcon}
-                        alt=""
-                        className="w-5 h-5 object-contain"
-                      />
-                    ) : (
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
-                      </svg>
-                    )}
-                    <span>{section5CallLabel || contactNumber}</span>
-                  </a>
-                )}
-
-                {section5SecondButtonLabel && (
-                  <Link
-                    href={quoteLink}
-                    className="inline-flex items-center justify-center gap-2.5 border-2 border-white text-white font-semibold text-[15px] px-7 py-3.5 rounded-lg hover:bg-white/10 transition-colors"
-                  >
-                    <span>{section5SecondButtonLabel}</span>
-                    {section5SecondButtonImage ? (
-                      <img
-                        src={section5SecondButtonImage}
-                        alt=""
-                        className="w-4 h-4 object-contain brightness-0 invert"
-                      />
-                    ) : (
-                      <span className="text-lg leading-none">&rarr;</span>
-                    )}
-                  </Link>
-                )}
-              </div>
-            </div>
           </div>
         </section>
       )}
