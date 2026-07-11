@@ -4,6 +4,14 @@ import { fetchPageBySlug } from "@/lib/wordpress";
 import AboutHero from "@/components/AboutHero";
 import AboutStorySection, { type AboutStoryPoint } from "@/components/AboutStorySection";
 import GalleryGrid from "@/components/GalleryGrid";
+import BlogSection from "@/components/BlogSection";
+import FaqSection from "@/components/FaqSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
+import ContactSection from "@/components/ContactSection";
+import ContactEmergencyBannerSection from "@/components/ContactEmergencyBannerSection";
+import ContactLocationMapSection from "@/components/ContactLocationMapSection";
+import ServicesPageSection from "@/components/ServicesPageSection";
+import { parseFaqGroups } from "@/lib/faq";
 import AboutStatsSection from "@/components/AboutStatsSection";
 import AboutCoreValuesSection from "@/components/AboutCoreValuesSection";
 import AboutTeamSection from "@/components/AboutTeamSection";
@@ -110,6 +118,19 @@ function getHeroAcf(slug: string, acf?: Record<string, unknown>): HeroAcf | null
     };
   }
 
+  if (slug === "services") {
+    return {
+      title: acfStr(acf, "services_page_1st_section_title") ?? "Our Services",
+      description:
+        acfStr(acf, "services_page_1st_section_text_area") ??
+        "Professional plumbing and heating services delivered by Gas Safe registered engineers.",
+      breadcrumbsText:
+        acfStr(acf, "services_page_1st_section_bread_crumbs_text") ?? "Home > Services",
+      breadcrumbsIcon: acfImageField(acf, "services_page_1st_section_bread_crumbs_icon"),
+      fallbackTitle: true,
+    };
+  }
+
   return null;
 }
 
@@ -185,6 +206,20 @@ function PageWithHero({
       )}
 
       {slug === "gallery" && <GalleryGrid items={parseGalleryItems(acf)} />}
+
+      {slug === "blog" && <BlogSection acf={acf} />}
+
+      {slug === "faq" && <FaqSection groups={parseFaqGroups(acf)} />}
+
+      {slug === "testimonials" && <TestimonialsSection acf={acf} />}
+
+      {slug === "contact" && <ContactEmergencyBannerSection acf={acf} />}
+
+      {slug === "contact" && <ContactSection acf={acf} />}
+
+      {slug === "contact" && <ContactLocationMapSection acf={acf} />}
+
+      {slug === "services" && <ServicesPageSection acf={acf} />}
 
       {page.content?.rendered ? (
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-12 lg:py-16">

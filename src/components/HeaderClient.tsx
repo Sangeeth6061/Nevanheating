@@ -17,6 +17,11 @@ type MenuItem = {
   page_link?: { url?: string };
 };
 
+type ServiceMenuItem = {
+  label: string;
+  href: string;
+};
+
 type HeaderData = {
   tag_line?: string;
   opening_hours?: string;
@@ -26,11 +31,18 @@ type HeaderData = {
   button_link?: { url?: string };
 };
 
-export default function HeaderClient({ headerData }: { headerData: HeaderData | null }) {
+export default function HeaderClient({
+  headerData,
+  serviceMenuItems = [],
+}: {
+  headerData: HeaderData | null;
+  serviceMenuItems?: ServiceMenuItem[];
+}) {
   const [showTopRow, setShowTopRow] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [topRowHeight, setTopRowHeight] = useState(40);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const topRowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -132,7 +144,36 @@ export default function HeaderClient({ headerData }: { headerData: HeaderData | 
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-semibold text-[15px] text-[#1e3a8a]">
           {headerData.menu?.map((item, i) => {
             const isHome = item.page_name.toLowerCase() === "home";
+            const isServices = item.page_name.toLowerCase() === "services";
             const href = wpUrlToPath(item.page_link?.url);
+
+            if (isServices && serviceMenuItems.length > 0) {
+              return (
+                <div key={i} className="relative group">
+                  <Link
+                    href={href}
+                    className="hover:text-[#2563EB] transition-colors flex items-center gap-1 whitespace-nowrap"
+                  >
+                    {item.page_name}
+                    <ChevronDown className="w-4 h-4 opacity-70 transition-transform group-hover:rotate-180" />
+                  </Link>
+                  <div className="absolute left-0 top-full pt-3 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
+                    <div className="min-w-[240px] rounded-xl border border-slate-100 bg-white py-2 shadow-[0_12px_40px_rgba(15,23,42,0.12)]">
+                      {serviceMenuItems.map((service) => (
+                        <Link
+                          key={service.href}
+                          href={service.href}
+                          className="block px-4 py-2.5 text-[14px] font-semibold text-[#1e3a8a] hover:bg-slate-50 hover:text-[#2563EB] transition-colors"
+                        >
+                          {service.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={i}
@@ -140,7 +181,6 @@ export default function HeaderClient({ headerData }: { headerData: HeaderData | 
                 className={`${isHome ? "text-[#2563EB]" : "hover:text-[#2563EB]"} transition-colors flex items-center gap-1 whitespace-nowrap`}
               >
                 {item.page_name}
-                {item.page_name.toLowerCase() === "services" && <ChevronDown className="w-4 h-4 opacity-70" />}
               </Link>
             );
           })}
@@ -177,17 +217,59 @@ export default function HeaderClient({ headerData }: { headerData: HeaderData | 
               <nav className="flex flex-col px-5 py-4">
                 {headerData.menu?.map((item, i) => {
                   const isHome = item.page_name.toLowerCase() === "home";
+                  const isServices = item.page_name.toLowerCase() === "services";
+                  const href = wpUrlToPath(item.page_link?.url);
+
+                  if (isServices && serviceMenuItems.length > 0) {
+                    return (
+                      <div key={i} className="border-b border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => setMobileServicesOpen((open) => !open)}
+                          className="w-full py-3.5 text-[15px] font-semibold text-[#1e3a8a] flex items-center justify-between"
+                        >
+                          <span>{item.page_name}</span>
+                          <ChevronDown
+                            className={`w-4 h-4 opacity-70 transition-transform ${
+                              mobileServicesOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+                        {mobileServicesOpen && (
+                          <div className="pb-3 pl-3 flex flex-col gap-1">
+                            <Link
+                              href={href}
+                              onClick={() => setMobileOpen(false)}
+                              className="py-2 text-sm font-semibold text-[#2563EB]"
+                            >
+                              All Services
+                            </Link>
+                            {serviceMenuItems.map((service) => (
+                              <Link
+                                key={service.href}
+                                href={service.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="py-2 text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors"
+                              >
+                                {service.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
                   return (
                     <Link
                       key={i}
-                      href={wpUrlToPath(item.page_link?.url)}
+                      href={href}
                       onClick={() => setMobileOpen(false)}
                       className={`py-3.5 border-b border-slate-100 text-[15px] font-semibold flex items-center justify-between ${
                         isHome ? "text-[#2563EB]" : "text-[#1e3a8a]"
                       }`}
                     >
                       {item.page_name}
-                      {item.page_name.toLowerCase() === "services" && <ChevronDown className="w-4 h-4 opacity-70" />}
                     </Link>
                   );
                 })}

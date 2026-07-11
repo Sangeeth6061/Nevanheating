@@ -23,7 +23,11 @@ async function wpFetch<T>(path: string): Promise<T | null> {
 }
 
 export async function fetchPosts() {
-  return (await wpFetch<unknown[]>("posts?_embed")) ?? [];
+  return (await wpFetch<unknown[]>("posts?per_page=100&_embed")) ?? [];
+}
+
+export async function fetchCategories() {
+  return (await wpFetch<unknown[]>("categories?per_page=100")) ?? [];
 }
 
 export async function fetchServices() {
