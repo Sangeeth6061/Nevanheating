@@ -1,10 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fetchPageBySlug } from "@/lib/wordpress";
+import { fetchPageBySlug, fetchPostBySlug } from "@/lib/wordpress";
+import { parseBlogPostDetail, stripHtml } from "@/lib/blog";
 import AboutHero from "@/components/AboutHero";
 import AboutStorySection, { type AboutStoryPoint } from "@/components/AboutStorySection";
 import GalleryGrid from "@/components/GalleryGrid";
 import BlogSection from "@/components/BlogSection";
+import BlogPostSection from "@/components/BlogPostSection";
 import FaqSection from "@/components/FaqSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import ContactSection from "@/components/ContactSection";
@@ -238,9 +240,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (slug === "home") return {};
 
   const page = (await fetchPageBySlug(slug)) as WpPage | null;
-  if (!page?.title?.rendered) return {};
+  if (page?.title?.rendered) return { title: page.title.rendered };
 
-  return { title: page.title.rendered };
+  const post = await fetchPostBySlug(slug);
+  const title = stripHtml((post as { title?: { rendered?: string } } | null)?.title?.rendered);
+  if (title) return { title };
+
+  return {};
 }
 
 export default async function DynamicPage({ params }: PageProps) {
@@ -253,6 +259,12 @@ export default async function DynamicPage({ params }: PageProps) {
   const page = (await fetchPageBySlug(slug)) as WpPage | null;
 
   if (!page) {
+    const post = await fetchPostBySlug(slug);
+    const blogPost = parseBlogPostDetail(post);
+    if (blogPost) {
+      return <BlogPostSection post={blogPost} />;
+    }
+
     notFound();
   }
 

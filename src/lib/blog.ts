@@ -35,6 +35,10 @@ export type BlogPost = {
   href: string;
 };
 
+export type BlogPostDetail = BlogPost & {
+  content: string;
+};
+
 export type BlogCategory = {
   id: number;
   name: string;
@@ -95,6 +99,8 @@ function stripHtml(html?: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+export { stripHtml };
 
 export function formatBlogDate(dateString?: string): string {
   if (!dateString) return "";
@@ -171,6 +177,20 @@ export function parseBlogPosts(posts: unknown[]): BlogPost[] {
       };
     })
     .filter((post): post is BlogPost => post !== null);
+}
+
+export function parseBlogPostDetail(post: unknown): BlogPostDetail | null {
+  const parsed = parseBlogPosts([post])[0];
+  if (!parsed) return null;
+
+  const raw = post as WpPostResponse;
+  const content = raw.content?.rendered?.trim();
+  if (!content) return null;
+
+  return {
+    ...parsed,
+    content,
+  };
 }
 
 export function parseAcfBlogPosts(acf?: Record<string, unknown> | null): BlogPost[] {

@@ -43,6 +43,11 @@ export async function fetchPageBySlug(slug: string) {
   return pages[0] ?? null;
 }
 
+export async function fetchPostBySlug(slug: string) {
+  const posts = (await wpFetch<unknown[]>(`posts?slug=${slug}&_embed`)) ?? [];
+  return posts[0] ?? null;
+}
+
 export async function fetchServiceBySlug(slug: string) {
   const services = (await wpFetch<unknown[]>(`service?slug=${slug}&_embed`)) ?? [];
   return services[0] ?? null;

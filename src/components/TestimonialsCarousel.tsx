@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const VISIBLE_COUNT = 3;
+const DESKTOP_VISIBLE_COUNT = 3;
+const MOBILE_VISIBLE_COUNT = 1;
+const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
 
 const STAR_KEYS = [
   "4th_testimonials_stars",
@@ -25,10 +27,26 @@ interface TestimonialsCarouselProps {
 
 export default function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(MOBILE_VISIBLE_COUNT);
 
-  const maxIndex = Math.max(0, testimonials.length - VISIBLE_COUNT);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    const updateVisibleCount = () => {
+      setVisibleCount(mediaQuery.matches ? DESKTOP_VISIBLE_COUNT : MOBILE_VISIBLE_COUNT);
+    };
+
+    updateVisibleCount();
+    mediaQuery.addEventListener("change", updateVisibleCount);
+    return () => mediaQuery.removeEventListener("change", updateVisibleCount);
+  }, []);
+
+  const maxIndex = Math.max(0, testimonials.length - visibleCount);
   const totalDots = maxIndex + 1;
-  const canSlide = testimonials.length > VISIBLE_COUNT;
+  const canSlide = testimonials.length > visibleCount;
+
+  useEffect(() => {
+    setCurrentIndex((prev) => Math.min(prev, maxIndex));
+  }, [maxIndex]);
 
   const goTo = useCallback(
     (index: number) => {
@@ -53,7 +71,7 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
 
   if (!testimonials.length) return null;
 
-  const trackWidthPercent = (testimonials.length / VISIBLE_COUNT) * 100;
+  const trackWidthPercent = (testimonials.length / visibleCount) * 100;
   const slideWidthPercent = 100 / testimonials.length;
 
   return (
@@ -79,7 +97,7 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
         </>
       )}
 
-      <div className="overflow-hidden mx-6 sm:mx-10">
+      <div className="overflow-hidden mx-4 sm:mx-10 lg:mx-10">
         <div
           className="flex transition-transform duration-500 ease-in-out"
           style={{
@@ -98,10 +116,10 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
             return (
               <div
                 key={index}
-                className="shrink-0 px-3"
+                className="shrink-0 px-2 sm:px-3"
                 style={{ width: `${slideWidthPercent}%` }}
               >
-                <div className="bg-[#F8FAFC] rounded-xl p-6 sm:p-8 lg:p-10 shadow-[0_2px_16px_rgba(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-full min-h-[280px]">
+                <div className="bg-[#F8FAFC] rounded-xl p-5 sm:p-8 lg:p-10 shadow-[0_2px_16px_rgba(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-full min-h-[240px] sm:min-h-[280px]">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-1">
                       {stars.length > 0 ? (

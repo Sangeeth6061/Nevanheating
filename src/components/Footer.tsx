@@ -100,7 +100,7 @@ export default async function Footer() {
   return (
     <footer className="bg-[#1a2b4d] text-white w-full">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-12 sm:py-14 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
           {/* Column 1 — Company */}
           <div className="flex flex-col sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-block mb-5">
@@ -135,56 +135,59 @@ export default async function Footer() {
             )}
           </div>
 
-          {/* Column 2 — Quick Links */}
-          {quickLinks.length > 0 && quickLinksTitle && (
-            <div>
-              <h3 className="font-bold text-base mb-5">{quickLinksTitle}</h3>
-              <ul className="space-y-2.5">
-                {quickLinks.map((item, index) => {
-                  const link = item.link_label;
-                  if (!link?.title) return null;
-                  return (
-                    <li key={index}>
-                      <Link
-                        href={wpUrlToPath(link.url)}
-                        className="text-slate-300 hover:text-white text-sm transition-colors"
-                      >
-                        {link.title}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+          {/* Quick Links + Services — two columns on responsive, separate columns on desktop */}
+          {(quickLinks.length > 0 && quickLinksTitle) || (serviceLinks.length > 0 && servicesTitle) ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:col-span-2 sm:gap-x-8 lg:contents">
+              {quickLinks.length > 0 && quickLinksTitle && (
+                <div className="min-w-0">
+                  <h3 className="font-bold text-base mb-4 sm:mb-5">{quickLinksTitle}</h3>
+                  <ul className="space-y-2 sm:space-y-2.5">
+                    {quickLinks.map((item, index) => {
+                      const link = item.link_label;
+                      if (!link?.title) return null;
+                      return (
+                        <li key={index}>
+                          <Link
+                            href={wpUrlToPath(link.url)}
+                            className="block py-0.5 text-slate-300 hover:text-white text-sm transition-colors break-words"
+                          >
+                            {link.title}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
 
-          {/* Column 3 — Services */}
-          {serviceLinks.length > 0 && servicesTitle && (
-            <div>
-              <h3 className="font-bold text-base mb-5">{servicesTitle}</h3>
-              <ul className="space-y-2.5">
-                {serviceLinks.map((item, index) => {
-                  const link = item.add_a_service_label;
-                  if (!link?.title) return null;
-                  return (
-                    <li key={index}>
-                      <Link
-                        href={wpUrlToPath(link.url)}
-                        className="text-slate-300 hover:text-white text-sm transition-colors"
-                      >
-                        {link.title}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+              {serviceLinks.length > 0 && servicesTitle && (
+                <div className="min-w-0">
+                  <h3 className="font-bold text-base mb-4 sm:mb-5">{servicesTitle}</h3>
+                  <ul className="space-y-2 sm:space-y-2.5">
+                    {serviceLinks.map((item, index) => {
+                      const link = item.add_a_service_label;
+                      if (!link?.title) return null;
+                      return (
+                        <li key={index}>
+                          <Link
+                            href={wpUrlToPath(link.url)}
+                            className="block py-0.5 text-slate-300 hover:text-white text-sm transition-colors break-words"
+                          >
+                            {link.title}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
 
           {/* Column 4 — Contact */}
           {contactItems.length > 0 && contactTitle && (
-            <div className="sm:col-span-2 lg:col-span-1">
-              <h3 className="font-bold text-base mb-5">{contactTitle}</h3>
+            <div className="sm:col-span-2 lg:col-span-1 min-w-0">
+              <h3 className="font-bold text-base mb-4 sm:mb-5">{contactTitle}</h3>
               <ul className="space-y-4">
                 {contactItems.map((item, index) => {
                   const link = item.add_a_ft_col_4_contact_info_link;
@@ -261,9 +264,9 @@ export default async function Footer() {
       {/* Bottom bar */}
       {showBottomBar && (
         <div className="border-t border-slate-700/60 bg-[#152238]">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            {copyright && <p className="text-slate-400 text-sm">{copyright}</p>}
-            <div className="flex items-center gap-4 sm:gap-6 text-sm">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            {copyright && <p className="text-slate-400 text-xs sm:text-sm">{copyright}</p>}
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-6 text-xs sm:text-sm">
               {privacyLink?.title && (
                 <Link href={acfLegalLinkHref(privacyLink)} className="text-slate-400 hover:text-white transition-colors">
                   {privacyLink.title}

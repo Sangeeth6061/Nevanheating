@@ -29,12 +29,17 @@ function Breadcrumbs({
         <ol className="flex items-center flex-wrap gap-1.5">
           {parts.map((part, index) => {
             const isHome = part.toLowerCase() === "home";
+            const isBlog = part.toLowerCase() === "blog";
             const isLast = index === parts.length - 1;
             return (
               <li key={index} className="flex items-center gap-1.5">
                 {index > 0 && <span className="text-slate-400/80">&gt;</span>}
                 {isHome && !isLast ? (
                   <Link href="/" className="hover:text-white transition-colors">
+                    {part}
+                  </Link>
+                ) : isBlog && !isLast ? (
+                  <Link href="/blog" className="hover:text-white transition-colors">
                     {part}
                   </Link>
                 ) : (
@@ -87,7 +92,7 @@ export default function AboutHero({
           breadcrumbsIcon={breadcrumbsIcon}
           pageTitle={pageTitle}
         />
-        <h1 className="text-3xl sm:text-4xl md:text-[42px] lg:text-[48px] font-extrabold text-white leading-tight tracking-tight font-heading max-w-3xl">
+        <h1 className="text-3xl sm:text-4xl md:text-[42px] lg:text-[48px] font-extrabold text-white leading-tight tracking-tight font-heading max-w-4xl">
           {title}
         </h1>
         {description && (

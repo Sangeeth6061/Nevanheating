@@ -124,7 +124,7 @@ export default function HeaderClient({
 
   if (!headerData) {
     return (
-      <header className="px-4 sm:px-6 lg:px-12 relative z-50 w-full min-h-[72px] lg:h-[90px] flex items-center justify-between bg-white border-b border-slate-100 shadow-sm">
+      <header className="px-4 sm:px-6 md:px-12 lg:px-16 relative z-50 w-full min-h-[72px] lg:h-[90px] flex items-center justify-between bg-white border-b border-slate-100 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-center justify-center pt-2">
             <div className="relative flex items-center justify-center w-8 h-8 rounded-full border border-blue-100 text-orange-500">
@@ -140,6 +140,11 @@ export default function HeaderClient({
 
   const quoteHref = wpUrlToPath(headerData.button_link?.url);
 
+  const handleMobileOpenChange = (open: boolean) => {
+    setMobileOpen(open);
+    if (!open) setMobileServicesOpen(false);
+  };
+
   return (
     <div
       className="sticky top-0 z-50 w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
@@ -149,7 +154,7 @@ export default function HeaderClient({
       <div
         id="top-row"
         ref={topRowRef}
-        className="bg-[#1e3a8a] text-slate-200 text-xs sm:text-[13px] px-4 sm:px-6 lg:px-12 flex items-center justify-between py-2 gap-3"
+        className="bg-[#1e3a8a] text-slate-200 text-xs sm:text-[13px] px-4 sm:px-6 md:px-12 lg:px-16 flex items-center justify-between py-2 gap-3"
       >
         <div className="truncate hidden sm:block">{headerData.tag_line}</div>
         <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 ml-auto sm:ml-0">
@@ -160,9 +165,9 @@ export default function HeaderClient({
             href={telHref(CONTACT_NUMBER)}
             className="flex items-center gap-2 text-[#F97316] font-semibold hover:text-orange-400 transition-colors whitespace-nowrap"
           >
-            <Phone className="w-3.5 h-3.5 shrink-0" />
+            <Phone className="w-5 h-5 sm:w-3.5 sm:h-3.5 shrink-0" />
             <span className="hidden sm:inline">{CONTACT_NUMBER}</span>
-            <span className="sm:hidden">Call</span>
+            <span className="text-sm font-bold sm:hidden">Call</span>
           </a>
         </div>
       </div>
@@ -170,7 +175,7 @@ export default function HeaderClient({
       {/* Menu Row */}
       <header
         id="menu-row"
-        className="bg-white px-4 sm:px-6 lg:px-12 w-full min-h-[72px] lg:h-[90px] flex items-center justify-between border-b border-slate-100 relative z-10 gap-3"
+        className="bg-white px-4 sm:px-6 md:px-12 lg:px-16 w-full min-h-[72px] lg:h-[90px] flex items-center justify-between border-b border-slate-100 relative z-10 gap-3"
       >
         <div className="flex items-center gap-2 shrink-0">
           <Link href="/">
@@ -248,13 +253,13 @@ export default function HeaderClient({
 
           <Link
             href={quoteHref}
-            className="inline-flex items-center justify-center bg-[#2563EB] hover:bg-blue-800 text-white rounded-[8px] px-4 sm:px-6 py-3 sm:py-4 lg:py-5 shadow-sm text-sm sm:text-[15px] font-medium whitespace-nowrap"
+            className="hidden lg:inline-flex items-center justify-center bg-[#2563EB] hover:bg-blue-800 text-white rounded-[8px] px-4 sm:px-6 py-3 sm:py-4 lg:py-5 shadow-sm text-sm sm:text-[15px] font-medium whitespace-nowrap"
           >
             {headerData.button_text}
           </Link>
 
           {/* Mobile menu */}
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <Sheet open={mobileOpen} onOpenChange={handleMobileOpenChange}>
             <SheetTrigger
               className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 text-[#1e3a8a] hover:bg-slate-50 transition-colors"
               aria-label="Open menu"
@@ -262,11 +267,11 @@ export default function HeaderClient({
               <Menu className="w-5 h-5" />
             </SheetTrigger>
             {mobileOpen && (
-            <SheetContent side="right" className="w-full sm:max-w-sm bg-white p-0">
-              <SheetHeader className="border-b border-slate-100 px-5 py-4">
+            <SheetContent side="right" className="flex h-full max-h-[100dvh] w-full flex-col bg-white p-0 sm:max-w-sm">
+              <SheetHeader className="shrink-0 border-b border-slate-100 px-5 py-4">
                 <SheetTitle className="text-[#1e3a8a] font-bold text-left">Menu</SheetTitle>
               </SheetHeader>
-              <nav className="flex flex-col px-5 py-4">
+              <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-4">
                 {headerData.menu?.map((item, i) => {
                   const isServices = item.page_name.toLowerCase() === "services";
                   const href = wpUrlToPath(item.page_link?.url);
@@ -341,7 +346,7 @@ export default function HeaderClient({
                   );
                 })}
               </nav>
-              <div className="mt-auto px-5 pb-6 pt-2 flex flex-col gap-3 border-t border-slate-100">
+              <div className="shrink-0 border-t border-slate-100 px-5 pb-6 pt-2 flex flex-col gap-3">
                 <a
                   href={telHref(CONTACT_NUMBER)}
                   className="inline-flex items-center justify-center gap-2 text-[#2563EB] font-semibold py-3"
