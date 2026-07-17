@@ -12,14 +12,16 @@ const FALLBACK_ICONS = [Clock, Users, Award, Star];
 
 function AnimatedStatValue({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [displayValue, setDisplayValue] = useState("0");
+  const { target, suffix, decimals } = parseStatValue(value);
+  const format = (amount: number) =>
+    decimals > 0 ? amount.toFixed(decimals) + suffix : Math.round(amount) + suffix;
+  const finalValue = format(target);
+  const [displayValue, setDisplayValue] = useState(finalValue);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
-
-    const { target, suffix, decimals } = parseStatValue(value);
 
     const animate = () => {
       if (hasAnimated.current) return;
@@ -27,14 +29,13 @@ function AnimatedStatValue({ value }: { value: string }) {
 
       const duration = 1400;
       const start = performance.now();
+      setDisplayValue(format(0));
 
       const tick = (now: number) => {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - (1 - progress) ** 3;
         const current = target * eased;
-        setDisplayValue(
-          decimals > 0 ? current.toFixed(decimals) + suffix : Math.round(current) + suffix
-        );
+        setDisplayValue(format(current));
         if (progress < 1) requestAnimationFrame(tick);
       };
 

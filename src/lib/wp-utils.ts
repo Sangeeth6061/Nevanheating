@@ -35,6 +35,27 @@ export function telHref(number?: string | null): string {
   return `tel:${number.replace(/\s+/g, "")}`;
 }
 
+export const WHATSAPP_DEFAULT_MESSAGE =
+  process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE?.trim() ||
+  "Hi, I am interested in your plumbing and heating services. Could you please help me?";
+
+export function whatsappHref(number?: string | null, message?: string): string {
+  const source =
+    number?.trim() ||
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim() ||
+    CONTACT_NUMBER;
+  const digits = source.replace(/\D/g, "");
+  if (!digits) return "#";
+
+  const url = `https://wa.me/${digits}`;
+  const text = message ?? WHATSAPP_DEFAULT_MESSAGE;
+  if (text) {
+    return `${url}?text=${encodeURIComponent(text)}`;
+  }
+
+  return url;
+}
+
 export type AcfLink = { title?: string; url?: string; target?: string };
 
 export function acfLinkHref(link?: AcfLink | null): string {

@@ -91,7 +91,7 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
             const stars = getStars(testimonial);
             const quoteIconUrl = (testimonial["4th_section_quotes_icon"] as { url?: string } | undefined)?.url;
             const message = testimonial["4th_section_customer_message"] as string | undefined;
-            const initials = testimonial["4th_section_user_image"] as string | undefined;
+            const initials = String(testimonial["4th_section_user_image"] ?? "").trim();
             const fullName = (testimonial["4th_section_full_name"] as string | undefined)?.trim();
             const location = testimonial["$th_section_full_name"] as string | undefined;
 
@@ -141,7 +141,7 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
                   <div className="flex items-center gap-3 mt-auto">
                     <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center shrink-0">
                       <span className="text-white text-sm font-bold uppercase tracking-wide">
-                        {initials}
+                        {initials || "?"}
                       </span>
                     </div>
                     <div className="flex flex-col min-w-0">

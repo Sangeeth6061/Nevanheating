@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CtaBanner from "@/components/CtaBanner";
+import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
 import { fetchHomePage } from "@/lib/wordpress";
 
 const inter = Inter({
@@ -46,6 +47,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <CtaBanner />
         <Footer />
+        <WhatsAppFloatButton />
       </body>
     </html>
   );

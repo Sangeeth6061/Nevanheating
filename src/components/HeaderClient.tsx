@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { Phone, ChevronDown, Flame, Menu } from "lucide-react";
 import Link from "next/link";
 import { wpUrlToPath, CONTACT_NUMBER, telHref } from "@/lib/wp-utils";
@@ -31,6 +32,41 @@ type HeaderData = {
   button_link?: { url?: string };
 };
 
+function normalizePath(path: string): string {
+  const base = path.split("?")[0].split("#")[0];
+  if (base.length > 1 && base.endsWith("/")) return base.slice(0, -1);
+  return base || "/";
+}
+
+function isNavItemActive(pathname: string, href: string, pageName: string): boolean {
+  const current = normalizePath(pathname);
+  const target = normalizePath(href);
+  const name = pageName.toLowerCase();
+
+  if (name === "home" || target === "/") {
+    return current === "/";
+  }
+
+  if (name === "services") {
+    return current === "/services" || current.startsWith("/service/");
+  }
+
+  return current === target || current.startsWith(`${target}/`);
+}
+
+function isServiceMenuItemActive(pathname: string, href: string, currentHash: string): boolean {
+  if (normalizePath(pathname) !== "/services") return false;
+
+  const hashIndex = href.indexOf("#");
+  if (hashIndex === -1) return false;
+
+  return currentHash === href.slice(hashIndex);
+}
+
+function navLinkClass(isActive: boolean): string {
+  return `${isActive ? "text-[#2563EB]" : "text-[#1e3a8a] hover:text-[#2563EB]"} transition-colors flex items-center gap-1 whitespace-nowrap`;
+}
+
 export default function HeaderClient({
   headerData,
   serviceMenuItems = [],
@@ -43,13 +79,28 @@ export default function HeaderClient({
   const [topRowHeight, setTopRowHeight] = useState(40);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [currentHash, setCurrentHash] = useState("");
+  const [hasMounted, setHasMounted] = useState(false);
+  const pathname = usePathname();
   const topRowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (topRowRef.current) {
-      setTopRowHeight(topRowRef.current.offsetHeight);
-    }
-  }, [headerData]);
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+
+    const updateHash = () => setCurrentHash(window.location.hash);
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, [pathname, hasMounted]);
+
+  useEffect(() => {
+    if (!hasMounted || !topRowRef.current) return;
+    setTopRowHeight(topRowRef.current.offsetHeight);
+  }, [headerData, hasMounted]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -127,7 +178,7 @@ export default function HeaderClient({
               <img
                 src={headerData.logo.url}
                 alt={headerData.logo.alt || "Logo"}
-                className="h-10 sm:h-12 lg:h-14 w-auto object-contain"
+                className="h-12 sm:h-12 lg:h-14 w-auto object-contain"
               />
             ) : (
               <div className="flex flex-col items-center justify-center pt-2">
@@ -141,33 +192,37 @@ export default function HeaderClient({
           </Link>
         </div>
 
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-semibold text-[15px] text-[#1e3a8a]">
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-semibold text-[15px]">
           {headerData.menu?.map((item, i) => {
-            const isHome = item.page_name.toLowerCase() === "home";
             const isServices = item.page_name.toLowerCase() === "services";
             const href = wpUrlToPath(item.page_link?.url);
+            const isActive = isNavItemActive(pathname, href, item.page_name);
 
             if (isServices && serviceMenuItems.length > 0) {
               return (
                 <div key={i} className="relative group">
-                  <Link
-                    href={href}
-                    className="hover:text-[#2563EB] transition-colors flex items-center gap-1 whitespace-nowrap"
-                  >
+                  <Link href={href} className={navLinkClass(isActive)}>
                     {item.page_name}
                     <ChevronDown className="w-4 h-4 opacity-70 transition-transform group-hover:rotate-180" />
                   </Link>
                   <div className="absolute left-0 top-full pt-3 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                     <div className="min-w-[240px] rounded-xl border border-slate-100 bg-white py-2 shadow-[0_12px_40px_rgba(15,23,42,0.12)]">
-                      {serviceMenuItems.map((service) => (
-                        <Link
-                          key={service.href}
-                          href={service.href}
-                          className="block px-4 py-2.5 text-[14px] font-semibold text-[#1e3a8a] hover:bg-slate-50 hover:text-[#2563EB] transition-colors"
-                        >
-                          {service.label}
-                        </Link>
-                      ))}
+                      {serviceMenuItems.map((service) => {
+                        const isSubActive = isServiceMenuItemActive(pathname, service.href, currentHash);
+                        return (
+                          <Link
+                            key={service.href}
+                            href={service.href}
+                            className={`block px-4 py-2.5 text-[14px] font-semibold transition-colors ${
+                              isSubActive
+                                ? "bg-slate-50 text-[#2563EB]"
+                                : "text-[#1e3a8a] hover:bg-slate-50 hover:text-[#2563EB]"
+                            }`}
+                          >
+                            {service.label}
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -175,11 +230,7 @@ export default function HeaderClient({
             }
 
             return (
-              <Link
-                key={i}
-                href={href}
-                className={`${isHome ? "text-[#2563EB]" : "hover:text-[#2563EB]"} transition-colors flex items-center gap-1 whitespace-nowrap`}
-              >
+              <Link key={i} href={href} className={navLinkClass(isActive)}>
                 {item.page_name}
               </Link>
             );
@@ -210,15 +261,16 @@ export default function HeaderClient({
             >
               <Menu className="w-5 h-5" />
             </SheetTrigger>
+            {mobileOpen && (
             <SheetContent side="right" className="w-full sm:max-w-sm bg-white p-0">
               <SheetHeader className="border-b border-slate-100 px-5 py-4">
                 <SheetTitle className="text-[#1e3a8a] font-bold text-left">Menu</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col px-5 py-4">
                 {headerData.menu?.map((item, i) => {
-                  const isHome = item.page_name.toLowerCase() === "home";
                   const isServices = item.page_name.toLowerCase() === "services";
                   const href = wpUrlToPath(item.page_link?.url);
+                  const isActive = isNavItemActive(pathname, href, item.page_name);
 
                   if (isServices && serviceMenuItems.length > 0) {
                     return (
@@ -226,7 +278,9 @@ export default function HeaderClient({
                         <button
                           type="button"
                           onClick={() => setMobileServicesOpen((open) => !open)}
-                          className="w-full py-3.5 text-[15px] font-semibold text-[#1e3a8a] flex items-center justify-between"
+                          className={`w-full py-3.5 text-[15px] font-semibold flex items-center justify-between ${
+                            isActive ? "text-[#2563EB]" : "text-[#1e3a8a]"
+                          }`}
                         >
                           <span>{item.page_name}</span>
                           <ChevronDown
@@ -240,20 +294,33 @@ export default function HeaderClient({
                             <Link
                               href={href}
                               onClick={() => setMobileOpen(false)}
-                              className="py-2 text-sm font-semibold text-[#2563EB]"
+                              className={`py-2 text-sm font-semibold ${
+                                isActive && !currentHash ? "text-[#2563EB]" : "text-[#64748B] hover:text-[#2563EB]"
+                              }`}
                             >
                               All Services
                             </Link>
-                            {serviceMenuItems.map((service) => (
-                              <Link
-                                key={service.href}
-                                href={service.href}
-                                onClick={() => setMobileOpen(false)}
-                                className="py-2 text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors"
-                              >
-                                {service.label}
-                              </Link>
-                            ))}
+                            {serviceMenuItems.map((service) => {
+                              const isSubActive = isServiceMenuItemActive(
+                                pathname,
+                                service.href,
+                                currentHash
+                              );
+                              return (
+                                <Link
+                                  key={service.href}
+                                  href={service.href}
+                                  onClick={() => setMobileOpen(false)}
+                                  className={`py-2 text-sm font-medium transition-colors ${
+                                    isSubActive
+                                      ? "text-[#2563EB]"
+                                      : "text-[#64748B] hover:text-[#2563EB]"
+                                  }`}
+                                >
+                                  {service.label}
+                                </Link>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -266,7 +333,7 @@ export default function HeaderClient({
                       href={href}
                       onClick={() => setMobileOpen(false)}
                       className={`py-3.5 border-b border-slate-100 text-[15px] font-semibold flex items-center justify-between ${
-                        isHome ? "text-[#2563EB]" : "text-[#1e3a8a]"
+                        isActive ? "text-[#2563EB]" : "text-[#1e3a8a]"
                       }`}
                     >
                       {item.page_name}
@@ -291,6 +358,7 @@ export default function HeaderClient({
                 </Link>
               </div>
             </SheetContent>
+            )}
           </Sheet>
         </div>
       </header>
