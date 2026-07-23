@@ -108,6 +108,64 @@ export function acfLinkHref(link?: AcfLink | null): string {
   return wpUrlToPath(url);
 }
 
+/** ACF footer/contact rows may leave `title` empty and store the text in description or a pseudo-url. */
+export function resolveAcfContactTitle(
+  link?: AcfLink | null,
+  description?: string | null
+): string | undefined {
+  const title = link?.title?.trim();
+  if (title) return title;
+
+  const desc = description?.trim();
+  if (desc) return desc;
+
+  const url = link?.url?.trim();
+  if (!url) return undefined;
+
+  const withoutScheme = url.replace(/^https?:\/\//i, "").trim();
+  if (!withoutScheme) return undefined;
+
+  try {
+    const parsed = new URL(url);
+    const hostLooksLikeText =
+      parsed.hostname.includes(" ") ||
+      parsed.hostname.includes(",") ||
+      /^\d/.test(parsed.hostname);
+    if (hostLooksLikeText) {
+      return decodeURIComponent(withoutScheme.replace(/\/$/, ""));
+    }
+  } catch {
+    return withoutScheme;
+  }
+
+  return undefined;
+}
+
+export function isLocationContactText(text?: string | null): boolean {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("edinburgh") ||
+    lower.includes("scotland") ||
+    lower.includes("london") ||
+    lower.includes("england")
+  ) {
+    return true;
+  }
+  if (/\broad\b|\bstreet\b|\bestate\b|\blane\b|\bavenue\b/.test(lower)) return true;
+  return /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i.test(text);
+}
+
+export function isHoursContactText(title?: string, description?: string): boolean {
+  const text = `${title ?? ""} ${description ?? ""}`.toLowerCase();
+  return (
+    text.includes("emergency service") ||
+    text.includes("mon") ||
+    text.includes("sat") ||
+    text.includes("hour")
+  );
+}
+
 export function acfImageUrl(image?: { url?: string } | false | null): string | undefined {
   if (!image || typeof image !== "object") return undefined;
   return image.url;

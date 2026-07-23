@@ -1,5 +1,5 @@
-import { acfImageUrl, type AcfLink, titleToSlug, wpUrlToPath, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
-import { resolveServiceSubpageHref } from "@/lib/legacy-service-redirects";
+import { acfImageUrl, type AcfLink, titleToSlug, wpUrlToPath } from "@/lib/wp-utils";
+import { getLegacyServiceSectionRedirect } from "@/lib/legacy-service-redirects";
 
 export type ServicePagePoint = {
   text: string;
@@ -9,6 +9,7 @@ export type ServicePagePoint = {
 export type ServicePageItem = {
   id: string;
   sectionAnchor: string;
+  href: string;
   title: string;
   description: string;
   paragraphs: string[];
@@ -20,27 +21,66 @@ export type ServicePageItem = {
   imageUrl?: string;
 };
 
+/** Services overview repeater order → sub-service landing slugs (matches WP `add_service_page` rows). */
+const SERVICE_PAGE_LANDING_SLUGS_BY_ORDER = [
+  "all-kind-of-plumbing-repairs",
+  "expert-boiler-installation-repairs-servicing",
+  "certified-gas-services-safety-inspections",
+  "complete-central-underfloor-heating-solutions",
+  "high-pressure-hot-water-cylinder-specialists",
+] as const;
+
 function acfStr(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
-function getServiceSectionAnchor(link: AcfLink | undefined, title: string): string {
+function getLandingSlugFromLink(link?: AcfLink): string | null {
   const path = wpUrlToPath(link?.url);
   const servicesMatch = path.match(/\/services\/([^/?#]+)/);
-  if (servicesMatch?.[1]) return servicesMatch[1];
+  return servicesMatch?.[1] ?? null;
+}
 
+function getServiceSectionAnchor(link: AcfLink | undefined, title: string): string {
+  const fromServicesPath = getLandingSlugFromLink(link);
+  if (fromServicesPath) return fromServicesPath;
+
+  const path = wpUrlToPath(link?.url);
   const legacyMatch = path.match(/\/service\/([^/?#]+)/);
   if (legacyMatch?.[1]) return legacyMatch[1];
 
   return titleToSlug(title);
 }
 
-export function getServiceSubpageHref(sectionAnchor: string): string {
-  return resolveServiceSubpageHref(sectionAnchor);
+export function resolveServiceCardLandingSlug(
+  title: string,
+  link?: AcfLink,
+  index = 0
+): string {
+  const fromServicesPath = getLandingSlugFromLink(link);
+  if (fromServicesPath) return fromServicesPath;
+
+  if (index >= 0 && index < SERVICE_PAGE_LANDING_SLUGS_BY_ORDER.length) {
+    return SERVICE_PAGE_LANDING_SLUGS_BY_ORDER[index];
+  }
+
+  const anchor = getServiceSectionAnchor(link, title);
+  const legacy = getLegacyServiceSectionRedirect(anchor);
+  if (legacy) {
+    const parts = legacy.split("/").filter(Boolean);
+    return parts[parts.length - 1] ?? anchor;
+  }
+
+  return anchor;
 }
 
-function getServicesSectionHref(anchor: string): string {
-  return getServiceSubpageHref(anchor);
+export function getServiceCardHref(title: string, link?: AcfLink, index = 0): string {
+  return `/services/${resolveServiceCardLandingSlug(title, link, index)}`;
+}
+
+export function getServiceSubpageHref(sectionAnchor: string): string {
+  const legacy = getLegacyServiceSectionRedirect(sectionAnchor);
+  if (legacy) return legacy;
+  return `/services/${sectionAnchor}`;
 }
 
 function splitParagraphs(text?: string): string[] {
@@ -111,7 +151,7 @@ export function parseServiceMenuItems(acf?: Record<string, unknown> | null): Arr
 }> {
   return parseServicesPageItems(acf).map((item) => ({
     label: item.title,
-    href: getServicesSectionHref(item.sectionAnchor),
+    href: item.href,
   }));
 }
 
@@ -129,11 +169,13 @@ export function parseServicesPageItems(acf?: Record<string, unknown> | null): Se
       const icon = row.srvice_page_icon as { url?: string; name?: string } | false | null | undefined;
       const link = row.service_page_ as AcfLink | undefined;
       const image = row.service_page_cover_image as { url?: string } | false | null | undefined;
-      const sectionAnchor = getServiceSectionAnchor(link, title);
+      const landingSlug = resolveServiceCardLandingSlug(title, link, index);
+      const href = `/services/${landingSlug}`;
 
       return {
-        id: sectionAnchor,
-        sectionAnchor,
+        id: `service-page-${index}`,
+        sectionAnchor: landingSlug,
+        href,
         title,
         description,
         paragraphs: splitParagraphs(description),
@@ -141,7 +183,7 @@ export function parseServicesPageItems(acf?: Record<string, unknown> | null): Se
         iconName: icon && typeof icon === "object" ? icon.name : undefined,
         points: parseServicePagePoints(row.add_service_page_points),
         buttonLabel: link?.title?.trim() || "Get a Quote",
-        buttonHref: CONTACT_QUOTE_HREF,
+        buttonHref: href,
         imageUrl: acfImageUrl(image),
       };
     })

@@ -1,4 +1,14 @@
-import { acfImageUrl, acfLinkHref, CONTACT_NUMBER, isPhoneNumber, telHref, type AcfLink } from "@/lib/wp-utils";
+import {
+  acfImageUrl,
+  acfLinkHref,
+  CONTACT_NUMBER,
+  isHoursContactText,
+  isLocationContactText,
+  isPhoneNumber,
+  resolveAcfContactTitle,
+  telHref,
+  type AcfLink,
+} from "@/lib/wp-utils";
 
 export type ContactInfoItem = {
   id: string;
@@ -29,6 +39,7 @@ export type ContactServiceAreaData = {
 
 export type ContactLocationMapData = {
   mapImageUrl?: string;
+  mapsEmbedUrl?: string;
   businessName: string;
   address: string;
 };
@@ -93,15 +104,31 @@ function normalizePhoneForTel(value: string): string {
   return digits.startsWith("44") ? `+${digits}` : `+${digits}`;
 }
 
+function findContactCardPhone(acf?: Record<string, unknown> | null): string | undefined {
+  if (!Array.isArray(acf?.add_contact_card)) return undefined;
+
+  for (const item of acf.add_contact_card) {
+    const row = item as ContactCardAcfItem;
+    const name = row.contact_card_name?.trim().toLowerCase() ?? "";
+    if (!name.includes("phone")) continue;
+
+    const details = row.contact_card_details?.trim();
+    if (details && isPhoneNumber(details)) return details;
+  }
+
+  return undefined;
+}
+
 export function parseContactEmergencyBanner(
   acf?: Record<string, unknown> | null
 ): ContactEmergencyBannerData | null {
   const message = acfStr(acf, "contact_page_emergency_");
   const phoneRaw = acfStr(acf, "contact_page_emegency_number");
+  const phoneFromCard = findContactCardPhone(acf);
 
-  if (!message && !phoneRaw) return null;
+  if (!message && !phoneFromCard && !phoneRaw) return null;
 
-  const phoneValue = phoneRaw ?? CONTACT_NUMBER;
+  const phoneValue = phoneFromCard ?? CONTACT_NUMBER;
   const iconUrl =
     acfImageUrl(acf?.contat_page_emergency_icon as { url?: string } | false | null | undefined) ??
     acfImageUrl(acf?.contact_page_emergency_icon as { url?: string } | false | null | undefined);
@@ -179,28 +206,27 @@ export function parseContactLocationMap(
   businessName = "Nevan Plumbing & Heating"
 ): ContactLocationMapData | null {
   const address = findLocationAddress(acf);
+  if (!address) return null;
+
   const mapImageUrl = acfImageUrl(
     acf?.set_your_location as { url?: string } | false | null | undefined
   );
 
-  if (!address && !mapImageUrl) return null;
-
   return {
     mapImageUrl,
+    mapsEmbedUrl: mapImageUrl
+      ? undefined
+      : `https://maps.google.com/maps?q=${encodeURIComponent(address)}&z=15&output=embed`,
     businessName,
-    address: address ?? "Edinburgh, Scotland, EH1 1AA",
+    address,
   };
 }
 
 function getContactLabel(title: string, description?: string): string {
-  const text = `${title} ${description ?? ""}`.toLowerCase();
-
   if (isPhoneNumber(title)) return "Phone";
   if (title.includes("@")) return "Email";
-  if (text.includes("edinburgh") || text.includes("scotland") || text.includes("eh")) return "Location";
-  if (text.includes("emergency") || text.includes("mon") || text.includes("hour") || text.includes("sat")) {
-    return "Hours";
-  }
+  if (isLocationContactText(title) || isLocationContactText(description)) return "Location";
+  if (isHoursContactText(title, description)) return "Hours";
 
   return "Contact";
 }
@@ -214,11 +240,11 @@ function getContactSubtitle(label: string, description?: string, title?: string)
     return "Sat: 9am–4pm | 24/7 Emergency";
   }
 
-  if (description && label !== "Hours") return description;
+  if (description && label !== "Hours" && description !== title) return description;
 
   if (label === "Phone") return "24/7 for emergencies";
   if (label === "Email") return "Reply within 2 hours";
-  if (label === "Location") return "EH1 1AA & surrounding areas";
+  if (label === "Location" && description && description !== title) return description;
   if (label === "Hours" && title) return "Sat: 9am–4pm | 24/7 Emergency";
 
   return undefined;
@@ -237,10 +263,9 @@ export function parseContactInfoItems(items: FooterContactItem[] | undefined): C
   return items
     .map((item, index): ContactInfoItem | null => {
       const link = item.add_a_ft_col_4_contact_info_link;
-      const title = link?.title?.trim();
-      if (!title) return null;
-
       const description = item.add_a_ft_col_4_contact_info_description?.trim();
+      const title = resolveAcfContactTitle(link, description);
+      if (!title) return null;
       const label = getContactLabel(title, description);
       const rawHref = acfLinkHref(link);
       const value =

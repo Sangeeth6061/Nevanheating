@@ -7,7 +7,10 @@ import {
   acfLinkHref,
   wpUrlToPath,
   CONTACT_NUMBER,
+  isHoursContactText,
+  isLocationContactText,
   isPhoneNumber,
+  resolveAcfContactTitle,
   telHref,
   type AcfLink,
 } from "@/lib/wp-utils";
@@ -52,21 +55,25 @@ function SocialIcon({ name }: { name?: string }) {
   return <TwitterIcon className="w-4 h-4" />;
 }
 
-function ContactFallbackIcon({ title, description, isPhone }: { title?: string; description?: string; isPhone?: boolean }) {
+function ContactFallbackIcon({
+  title,
+  description,
+  isPhone,
+  isLocation,
+  isHours,
+}: {
+  title?: string;
+  description?: string;
+  isPhone?: boolean;
+  isLocation?: boolean;
+  isHours?: boolean;
+}) {
   if (isPhone) return <Phone className="w-4 h-4 text-[#F97316] shrink-0" />;
+  if (isLocation) return <MapPin className="w-4 h-4 text-[#ff791a] shrink-0" />;
+  if (isHours) return <Clock className="w-4 h-4 text-[#F97316] shrink-0" />;
   const text = `${title ?? ""} ${description ?? ""}`.toLowerCase();
   if (text.includes("@")) return <Mail className="w-4 h-4 text-[#F97316] shrink-0" />;
-  if (text.includes("emergency service") || text.includes("mon") || text.includes("sat")) {
-    return <Clock className="w-4 h-4 text-[#F97316] shrink-0" />;
-  }
-  if (text.includes("edinburgh") || text.includes("scotland") || text.includes("eh")) {
-    return <MapPin className="w-4 h-4 text-[#F97316] shrink-0" />;
-  }
   return <Phone className="w-4 h-4 text-[#F97316] shrink-0" />;
-}
-
-function isEmergencyHighlight(title?: string) {
-  return title?.toLowerCase().includes("emergency service") ?? false;
 }
 
 function splitHoursLines(description?: string): string[] {
@@ -193,34 +200,46 @@ export default async function Footer() {
                   const link = item.add_a_ft_col_4_contact_info_link;
                   const description = item.add_a_ft_col_4_contact_info_description;
                   const iconUrl = acfImageUrl(item.contact_info_icon);
-                  const title = link?.title;
+                  const title = resolveAcfContactTitle(link, description);
                   if (!title) return null;
 
+                  const subDescription =
+                    description?.trim() && description.trim() !== title ? description.trim() : undefined;
                   const rawHref = acfLinkHref(link);
                   const isPhone = isPhoneNumber(title) || rawHref.startsWith("tel:");
+                  const isLocation = isLocationContactText(title) || isLocationContactText(subDescription);
+                  const isHours = isHoursContactText(title, subDescription);
                   const displayTitle = isPhone ? CONTACT_NUMBER : title;
                   const href = isPhone ? telHref(CONTACT_NUMBER) : rawHref;
                   const isEmail = href.startsWith("mailto:");
-                  const isClickable = isPhone || isEmail || (link?.url && link.url.startsWith("http"));
-                  const highlight = isEmergencyHighlight(title);
-                  const hourLines = highlight ? splitHoursLines(description) : [];
+                  const isClickable =
+                    !isLocation &&
+                    !isHours &&
+                    (isPhone || isEmail || (Boolean(link?.url) && href !== "#" && !href.startsWith("http://+")));
+                  const hourLines = isHours ? splitHoursLines(subDescription ?? title) : [];
 
                   const content = (
                     <div className="flex items-start gap-3">
-                      {isPhone || !iconUrl ? (
-                        <ContactFallbackIcon title={title} description={description} isPhone={isPhone} />
+                      {isPhone || !iconUrl || isLocation ? (
+                        <ContactFallbackIcon
+                          title={title}
+                          description={subDescription}
+                          isPhone={isPhone}
+                          isLocation={isLocation}
+                          isHours={isHours}
+                        />
                       ) : (
                         <img src={iconUrl} alt="" className="w-4 h-4 object-contain shrink-0 mt-0.5 brightness-0 saturate-100 invert-[.65] sepia hue-rotate-[350deg]" />
                       )}
                       <div className="min-w-0">
                         <span
                           className={`block text-sm leading-snug ${
-                            highlight ? "text-[#F97316] font-semibold" : "text-white"
+                            isHours ? "text-[#F97316] font-semibold" : "text-white"
                           }`}
                         >
                           {displayTitle}
                         </span>
-                        {highlight && hourLines.length > 0 ? (
+                        {isHours && hourLines.length > 0 ? (
                           <div className="mt-1 space-y-0.5">
                             {hourLines.map((line, lineIndex) => (
                               <span key={lineIndex} className="block text-sm text-slate-300 leading-relaxed">
@@ -229,13 +248,13 @@ export default async function Footer() {
                             ))}
                           </div>
                         ) : (
-                          description && (
+                          subDescription && (
                             <span
                               className={`block text-sm mt-1 leading-relaxed ${
-                                isPhone ? "text-slate-400" : highlight ? "text-slate-300" : "text-slate-400"
+                                isPhone ? "text-slate-400" : isHours ? "text-slate-300" : "text-slate-400"
                               }`}
                             >
-                              {description}
+                              {subDescription}
                             </span>
                           )
                         )}
@@ -245,7 +264,7 @@ export default async function Footer() {
 
                   return (
                     <li key={index}>
-                      {isClickable && !highlight ? (
+                      {isClickable ? (
                         <a href={href} className="hover:opacity-90 transition-opacity">
                           {content}
                         </a>

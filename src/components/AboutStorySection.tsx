@@ -98,7 +98,7 @@ export default function AboutStorySection({
                 />
               </div>
               {(establishedYear || establishedText) && (
-                <div className="absolute -bottom-6 -left-6 sm:-bottom-8 sm:-left-8 bg-[#F97316] text-white rounded-2xl px-6 py-5 shadow-[0_12px_40px_rgba(249,115,22,0.35)] min-w-[150px] z-10">
+                <div className="absolute -bottom-6 left-4 sm:-bottom-8 sm:-left-8 bg-[#F97316] text-white rounded-2xl px-6 py-5 shadow-[0_12px_40px_rgba(249,115,22,0.35)] min-w-[150px] z-10">
                   {establishedYear && (
                     <span className="block text-[38px] sm:text-[42px] font-extrabold leading-none mb-1 font-heading">
                       {establishedYear}

@@ -153,7 +153,7 @@ export default function HeaderClient({
       <div
         id="top-row"
         ref={topRowRef}
-        className="bg-[#1e3a8a] text-slate-200 text-xs sm:text-[13px] px-4 sm:px-6 md:px-12 lg:px-16 flex items-center justify-between py-2 gap-3"
+        className="hidden sm:flex bg-[#1e3a8a] text-slate-200 text-xs sm:text-[13px] px-4 sm:px-6 md:px-12 lg:px-16 items-center justify-between py-2 gap-3"
       >
         <div className="truncate hidden sm:block">{headerData.tag_line}</div>
         <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 ml-auto sm:ml-0">
@@ -164,9 +164,8 @@ export default function HeaderClient({
             href={telHref(CONTACT_NUMBER)}
             className="flex items-center gap-2 text-[#F97316] font-semibold hover:text-orange-400 transition-colors whitespace-nowrap"
           >
-            <Phone className="w-5 h-5 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span className="hidden sm:inline">{CONTACT_NUMBER}</span>
-            <span className="text-sm font-bold sm:hidden">Call</span>
+            <Phone className="w-3.5 h-3.5 shrink-0" />
+            <span>{CONTACT_NUMBER}</span>
           </a>
         </div>
       </div>
@@ -174,7 +173,7 @@ export default function HeaderClient({
       {/* Menu Row */}
       <header
         id="menu-row"
-        className="bg-white px-4 sm:px-6 md:px-12 lg:px-16 w-full min-h-[72px] lg:h-[90px] flex items-center justify-between border-b border-slate-100 relative z-10 gap-3"
+        className="bg-white px-4 sm:px-6 md:px-12 lg:px-16 w-full min-h-[84px] lg:h-[90px] flex items-center justify-between border-b border-slate-100 relative z-10 gap-3"
       >
         <div className="flex items-center gap-2 shrink-0">
           <Link href="/">
@@ -182,7 +181,7 @@ export default function HeaderClient({
               <img
                 src={headerData.logo.url}
                 alt={headerData.logo.alt || "Logo"}
-                className="h-14 sm:h-16 lg:h-[4.5rem] w-auto object-contain"
+                className="h-20 sm:h-16 lg:h-[4.5rem] w-auto object-contain"
               />
             ) : (
               <div className="flex flex-col items-center justify-center pt-2">

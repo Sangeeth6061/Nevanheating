@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 import {
   getServiceIconColorClasses,
-  getServiceSubpageHref,
   parseServicesPageItems,
   type ServicePageItem,
 } from "@/lib/services-page";
@@ -28,12 +28,11 @@ export default function ServicesOverviewSection({ acf }: ServicesOverviewSection
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {services.map((service) => {
             const iconColors = getServiceIconColorClasses(service.iconUrl, service.iconName);
-            const href = getServiceSubpageHref(service.sectionAnchor);
 
             return (
               <Link
                 key={service.id}
-                href={href}
+                href={service.href}
                 className="group flex flex-col overflow-hidden rounded-2xl md:rounded-3xl border border-slate-100 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.08)]"
               >
                 {service.imageUrl && (
@@ -56,10 +55,32 @@ export default function ServicesOverviewSection({ acf }: ServicesOverviewSection
                   <h2 className="text-xl md:text-2xl font-extrabold text-[#1E3A8A] font-heading mb-3 group-hover:text-[#2563EB] transition-colors">
                     {service.title}
                   </h2>
-                  <p className="text-[#64748B] text-sm md:text-[15px] leading-relaxed mb-5 flex-1">
+                  <p className="text-[#64748B] text-sm md:text-[15px] leading-relaxed mb-4 flex-1">
                     {serviceSummary(service)}
                   </p>
-                  <span className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] group-hover:gap-3 transition-all">
+
+                  {service.points.length > 0 && (
+                    <ul className="space-y-2.5 mb-5">
+                      {service.points.map((point, pointIndex) => (
+                        <li key={pointIndex} className="flex items-start gap-2.5 text-left">
+                          {point.iconUrl ? (
+                            <img
+                              src={point.iconUrl}
+                              alt=""
+                              className="mt-0.5 h-4 w-4 shrink-0 object-contain"
+                            />
+                          ) : (
+                            <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#EDF5FF]">
+                              <Check className="h-2.5 w-2.5 text-[#2563EB]" strokeWidth={3} aria-hidden="true" />
+                            </span>
+                          )}
+                          <span className="text-sm text-[#1E293B] leading-snug">{point.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] group-hover:gap-3 transition-all mt-auto">
                     View service
                     <span aria-hidden="true">&rarr;</span>
                   </span>

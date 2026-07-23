@@ -171,7 +171,7 @@ export default function HeroSlider({
       </div>
 
       {slides.length > 1 && (
-        <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 flex gap-3 justify-center z-30">
+        <div className="absolute bottom-0 sm:bottom-6 left-0 right-0 flex gap-3 justify-center z-30 translate-y-3 sm:translate-y-0">
           {slides.map((_, i) => (
             <button
               key={i}
