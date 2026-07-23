@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Flame, Wrench, Zap, Droplet, Bath, ShieldCheck, Check } from "lucide-react";
 import { fetchHomePage, fetchHeader, fetchServices } from "@/lib/wordpress";
-import { findMenuPath, findServicePath, wpUrlToPath, CONTACT_NUMBER, telHref } from "@/lib/wp-utils";
+import { findMenuPath, findServicePath, wpUrlToPath, CONTACT_NUMBER, telHref, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 import HeroSlider from "@/components/HeroSlider";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
@@ -109,7 +109,7 @@ export default async function Home() {
   );
 
   const quoteButtonText = headerData?.button_text as string | undefined;
-  const quoteLink = wpUrlToPath((headerData?.button_link as { url?: string } | undefined)?.url);
+  const quoteLink = CONTACT_QUOTE_HREF;
   const contactNumber = CONTACT_NUMBER;
 
   const section2Eyebrow = acfStr(homeData, "2nd_section_what_we_do");

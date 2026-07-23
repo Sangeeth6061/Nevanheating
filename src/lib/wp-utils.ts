@@ -1,8 +1,38 @@
+import { resolveServiceSubpageHref } from "@/lib/legacy-service-redirects";
+
 const WP_BASE = process.env.NEXT_PUBLIC_WORDPRESS_URL?.replace(/\/$/, "") ?? "";
+
+function slugifyPathname(pathname: string): string {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length === 0) return pathname;
+
+  const lastIndex = parts.length - 1;
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(parts[lastIndex]);
+    } catch {
+      return parts[lastIndex];
+    }
+  })();
+
+  if (/[\s,]/.test(decoded) || (decoded.includes("&") && !decoded.includes("-"))) {
+    parts[lastIndex] = titleToSlug(decoded);
+    return `/${parts.join("/")}`;
+  }
+
+  return pathname;
+}
 
 export function wpUrlToPath(url?: string | null): string {
   if (!url) return "#";
-  if (url.startsWith("/")) return normalizeHomePath(url);
+  if (url.startsWith("/")) {
+    const q = url.indexOf("?");
+    const h = url.indexOf("#");
+    const cut = [q, h].filter((i) => i >= 0).sort((a, b) => a - b)[0];
+    const pathname = cut === undefined ? url : url.slice(0, cut);
+    const suffix = cut === undefined ? "" : url.slice(cut);
+    return normalizeHomePath(slugifyPathname(pathname)) + suffix;
+  }
   let path = url;
   if (WP_BASE && url.startsWith(WP_BASE)) {
     path = url.slice(WP_BASE.length) || "/";
@@ -14,7 +44,12 @@ export function wpUrlToPath(url?: string | null): string {
       return url;
     }
   }
-  return normalizeHomePath(path);
+  const q = path.indexOf("?");
+  const h = path.indexOf("#");
+  const cut = [q, h].filter((i) => i >= 0).sort((a, b) => a - b)[0];
+  const pathname = cut === undefined ? path : path.slice(0, cut);
+  const suffix = cut === undefined ? "" : path.slice(cut);
+  return normalizeHomePath(slugifyPathname(pathname)) + suffix;
 }
 
 function normalizeHomePath(path: string): string {
@@ -24,6 +59,10 @@ function normalizeHomePath(path: string): string {
 
 export const CONTACT_NUMBER =
   process.env.NEXT_PUBLIC_CONTACT_NUMBER?.trim() || "+44 7720 843384";
+
+/** Contact page + form anchor for “Get a Quote” CTAs site-wide */
+export const CONTACT_FORM_ID = "contact-form";
+export const CONTACT_QUOTE_HREF = `/contact#${CONTACT_FORM_ID}`;
 
 export function isPhoneNumber(value?: string | null): boolean {
   if (!value) return false;
@@ -96,7 +135,7 @@ export function titleToSlug(title: string): string {
   return title
     .toLowerCase()
     .trim()
-    .replace(/&/g, "and")
+    .replace(/&/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
@@ -130,5 +169,6 @@ export function findServicePath(
     return service.slug === slug || serviceTitle === normalizedTitle;
   });
 
-  return match ? wpUrlToPath(match.link) : null;
+  const resolvedSlug = match?.slug ?? slug;
+  return resolveServiceSubpageHref(resolvedSlug);
 }

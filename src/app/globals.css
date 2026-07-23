@@ -244,3 +244,65 @@
   border-top: 1px solid #e2e8f0;
   margin: 2rem 0;
 }
+
+@keyframes whatsapp-dance {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  12% {
+    transform: rotate(-14deg) scale(1.08);
+  }
+  24% {
+    transform: rotate(14deg) scale(1.08);
+  }
+  36% {
+    transform: rotate(-12deg) scale(1.04);
+  }
+  48% {
+    transform: rotate(12deg) scale(1.04);
+  }
+  60% {
+    transform: rotate(-8deg) scale(1.1);
+  }
+  72% {
+    transform: rotate(8deg) scale(1.06);
+  }
+  84% {
+    transform: rotate(-4deg) scale(1.02);
+  }
+}
+
+@keyframes whatsapp-ring-pulse {
+  0% {
+    box-shadow:
+      0 8px 24px rgba(37, 211, 102, 0.45),
+      0 0 0 0 rgba(37, 211, 102, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 8px 24px rgba(37, 211, 102, 0.45),
+      0 0 0 10px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow:
+      0 8px 24px rgba(37, 211, 102, 0.45),
+      0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+.animate-whatsapp-attention {
+  animation: whatsapp-ring-pulse 2s ease-out infinite;
+}
+
+.animate-whatsapp-dance {
+  animation: whatsapp-dance 0.9s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-whatsapp-attention,
+  .animate-whatsapp-dance {
+    animation: none;
+  }
+}

@@ -1,16 +1,32 @@
-import { fetchHeader, fetchPageBySlug } from "@/lib/wordpress";
-import { parseServiceMenuItems } from "@/lib/services-page";
+import { fetchHeader, fetchPublishedPages } from "@/lib/wordpress";
+import {
+  buildSubServiceMenuItem,
+  filterSubServiceLandingPages,
+} from "@/lib/sub-service-page";
 import HeaderClient from "./HeaderClient";
 
 export default async function Header() {
-  const [headerData, servicesPage] = await Promise.all([
+  const [headerData, publishedPages] = await Promise.all([
     fetchHeader(),
-    fetchPageBySlug("services"),
+    fetchPublishedPages(),
   ]);
 
-  const serviceMenuItems = parseServiceMenuItems(
-    (servicesPage as { acf?: Record<string, unknown> } | null)?.acf
+  const landingPages = filterSubServiceLandingPages(publishedPages);
+
+  const subServiceLandingHrefs = landingPages.map(
+    (page) =>
+      buildSubServiceMenuItem(page.slug, page.acf, page.title?.rendered, page.link).href
   );
 
-  return <HeaderClient headerData={headerData} serviceMenuItems={serviceMenuItems} />;
+  const serviceMenuItems = landingPages.map((page) =>
+    buildSubServiceMenuItem(page.slug, page.acf, page.title?.rendered, page.link)
+  );
+
+  return (
+    <HeaderClient
+      headerData={headerData}
+      serviceMenuItems={serviceMenuItems}
+      subServiceLandingHrefs={subServiceLandingHrefs}
+    />
+  );
 }

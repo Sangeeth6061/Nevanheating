@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Phone, ChevronDown, Flame, Menu } from "lucide-react";
 import Link from "next/link";
-import { wpUrlToPath, CONTACT_NUMBER, telHref } from "@/lib/wp-utils";
+import { wpUrlToPath, CONTACT_NUMBER, telHref, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 import {
   Sheet,
   SheetContent,
@@ -38,7 +38,12 @@ function normalizePath(path: string): string {
   return base || "/";
 }
 
-function isNavItemActive(pathname: string, href: string, pageName: string): boolean {
+function isNavItemActive(
+  pathname: string,
+  href: string,
+  pageName: string,
+  subServiceLandingHrefs: string[]
+): boolean {
   const current = normalizePath(pathname);
   const target = normalizePath(href);
   const name = pageName.toLowerCase();
@@ -48,19 +53,21 @@ function isNavItemActive(pathname: string, href: string, pageName: string): bool
   }
 
   if (name === "services") {
-    return current === "/services" || current.startsWith("/service/");
+    const onSubServiceLanding = subServiceLandingHrefs.some(
+      (landingHref) => normalizePath(landingHref) === current
+    );
+    return (
+      current === "/services" ||
+      current.startsWith("/services/") ||
+      onSubServiceLanding
+    );
   }
 
   return current === target || current.startsWith(`${target}/`);
 }
 
-function isServiceMenuItemActive(pathname: string, href: string, currentHash: string): boolean {
-  if (normalizePath(pathname) !== "/services") return false;
-
-  const hashIndex = href.indexOf("#");
-  if (hashIndex === -1) return false;
-
-  return currentHash === href.slice(hashIndex);
+function isServiceMenuItemActive(pathname: string, href: string): boolean {
+  return normalizePath(pathname) === normalizePath(href);
 }
 
 function navLinkClass(isActive: boolean): string {
@@ -70,16 +77,17 @@ function navLinkClass(isActive: boolean): string {
 export default function HeaderClient({
   headerData,
   serviceMenuItems = [],
+  subServiceLandingHrefs = [],
 }: {
   headerData: HeaderData | null;
   serviceMenuItems?: ServiceMenuItem[];
+  subServiceLandingHrefs?: string[];
 }) {
   const [showTopRow, setShowTopRow] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [topRowHeight, setTopRowHeight] = useState(40);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
-  const [currentHash, setCurrentHash] = useState("");
   const [hasMounted, setHasMounted] = useState(false);
   const pathname = usePathname();
   const topRowRef = useRef<HTMLDivElement>(null);
@@ -87,15 +95,6 @@ export default function HeaderClient({
   useEffect(() => {
     setHasMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!hasMounted) return;
-
-    const updateHash = () => setCurrentHash(window.location.hash);
-    updateHash();
-    window.addEventListener("hashchange", updateHash);
-    return () => window.removeEventListener("hashchange", updateHash);
-  }, [pathname, hasMounted]);
 
   useEffect(() => {
     if (!hasMounted || !topRowRef.current) return;
@@ -138,7 +137,7 @@ export default function HeaderClient({
     );
   }
 
-  const quoteHref = wpUrlToPath(headerData.button_link?.url);
+  const quoteHref = CONTACT_QUOTE_HREF;
 
   const handleMobileOpenChange = (open: boolean) => {
     setMobileOpen(open);
@@ -183,7 +182,7 @@ export default function HeaderClient({
               <img
                 src={headerData.logo.url}
                 alt={headerData.logo.alt || "Logo"}
-                className="h-12 sm:h-12 lg:h-14 w-auto object-contain"
+                className="h-14 sm:h-16 lg:h-[4.5rem] w-auto object-contain"
               />
             ) : (
               <div className="flex flex-col items-center justify-center pt-2">
@@ -201,7 +200,7 @@ export default function HeaderClient({
           {headerData.menu?.map((item, i) => {
             const isServices = item.page_name.toLowerCase() === "services";
             const href = wpUrlToPath(item.page_link?.url);
-            const isActive = isNavItemActive(pathname, href, item.page_name);
+            const isActive = isNavItemActive(pathname, href, item.page_name, subServiceLandingHrefs);
 
             if (isServices && serviceMenuItems.length > 0) {
               return (
@@ -213,7 +212,7 @@ export default function HeaderClient({
                   <div className="absolute left-0 top-full pt-3 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                     <div className="min-w-[240px] rounded-xl border border-slate-100 bg-white py-2 shadow-[0_12px_40px_rgba(15,23,42,0.12)]">
                       {serviceMenuItems.map((service) => {
-                        const isSubActive = isServiceMenuItemActive(pathname, service.href, currentHash);
+                        const isSubActive = isServiceMenuItemActive(pathname, service.href);
                         return (
                           <Link
                             key={service.href}
@@ -275,7 +274,7 @@ export default function HeaderClient({
                 {headerData.menu?.map((item, i) => {
                   const isServices = item.page_name.toLowerCase() === "services";
                   const href = wpUrlToPath(item.page_link?.url);
-                  const isActive = isNavItemActive(pathname, href, item.page_name);
+                  const isActive = isNavItemActive(pathname, href, item.page_name, subServiceLandingHrefs);
 
                   if (isServices && serviceMenuItems.length > 0) {
                     return (
@@ -300,17 +299,13 @@ export default function HeaderClient({
                               href={href}
                               onClick={() => setMobileOpen(false)}
                               className={`py-2 text-sm font-semibold ${
-                                isActive && !currentHash ? "text-[#2563EB]" : "text-[#64748B] hover:text-[#2563EB]"
+                                pathname === "/services" ? "text-[#2563EB]" : "text-[#64748B] hover:text-[#2563EB]"
                               }`}
                             >
                               All Services
                             </Link>
                             {serviceMenuItems.map((service) => {
-                              const isSubActive = isServiceMenuItemActive(
-                                pathname,
-                                service.href,
-                                currentHash
-                              );
+                              const isSubActive = isServiceMenuItemActive(pathname, service.href);
                               return (
                                 <Link
                                   key={service.href}

@@ -7,6 +7,7 @@ import {
   parseBlogSidebarBanner,
 } from "@/lib/blog";
 import BlogListing from "@/components/BlogListing";
+import { CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 
 type BlogSectionProps = {
   acf?: Record<string, unknown>;
@@ -35,7 +36,7 @@ export default async function BlogSection({ acf }: BlogSectionProps) {
       categories={categories}
       bannerTitle={banner.title}
       bannerDescription={banner.description}
-      quoteHref={banner.buttonHref ?? "#"}
+      quoteHref={CONTACT_QUOTE_HREF}
       quoteLabel={banner.buttonLabel ?? "Get a Quote"}
     />
   );

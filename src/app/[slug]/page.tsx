@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fetchPageBySlug, fetchPostBySlug } from "@/lib/wordpress";
+import { fetchPostBySlug } from "@/lib/wordpress";
+import { fetchPageForRequestSlug, redirectPathIfNotCanonical } from "@/lib/page-route";
 import { parseBlogPostDetail, stripHtml } from "@/lib/blog";
 import AboutHero from "@/components/AboutHero";
 import AboutStorySection, { type AboutStoryPoint } from "@/components/AboutStorySection";
@@ -12,7 +13,13 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import ContactSection from "@/components/ContactSection";
 import ContactEmergencyBannerSection from "@/components/ContactEmergencyBannerSection";
 import ContactLocationMapSection from "@/components/ContactLocationMapSection";
-import ServicesPageSection from "@/components/ServicesPageSection";
+import ServicesOverviewSection from "@/components/ServicesOverviewSection";
+import SubServicePageSection from "@/components/SubServicePageSection";
+import {
+  getSubServicePageHero,
+  isSubServiceLandingPage,
+  parseSubServicePageContent,
+} from "@/lib/sub-service-page";
 import { parseFaqGroups } from "@/lib/faq";
 import AboutStatsSection from "@/components/AboutStatsSection";
 import AboutCoreValuesSection from "@/components/AboutCoreValuesSection";
@@ -54,7 +61,11 @@ type HeroAcf = {
   fallbackTitle?: boolean;
 };
 
-function getHeroAcf(slug: string, acf?: Record<string, unknown>): HeroAcf | null {
+function getHeroAcf(
+  slug: string,
+  acf?: Record<string, unknown>,
+  pageTitleHtml?: string
+): HeroAcf | null {
   if (slug === "about") {
     return {
       title: acfStr(acf, "about_page_1st_section_title"),
@@ -133,6 +144,10 @@ function getHeroAcf(slug: string, acf?: Record<string, unknown>): HeroAcf | null
     };
   }
 
+  if (isSubServiceLandingPage(acf)) {
+    return getSubServicePageHero(acf, pageTitleHtml);
+  }
+
   return null;
 }
 
@@ -164,6 +179,7 @@ function PageWithHero({
 }) {
   const pageTitle = page.title?.rendered;
   const heroTitle = hero.title ?? (hero.fallbackTitle ? pageTitle : undefined);
+  const subServiceContent = isSubServiceLandingPage(acf) ? parseSubServicePageContent(acf) : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -221,7 +237,9 @@ function PageWithHero({
 
       {slug === "contact" && <ContactLocationMapSection acf={acf} />}
 
-      {slug === "services" && <ServicesPageSection acf={acf} />}
+      {slug === "services" && <ServicesOverviewSection acf={acf} />}
+
+      {subServiceContent && <SubServicePageSection content={subServiceContent} />}
 
       {page.content?.rendered ? (
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-12 lg:py-16">
@@ -239,7 +257,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   if (slug === "home") return {};
 
-  const page = (await fetchPageBySlug(slug)) as WpPage | null;
+  const { page } = await fetchPageForRequestSlug(slug);
   if (page?.title?.rendered) return { title: page.title.rendered };
 
   const post = await fetchPostBySlug(slug);
@@ -256,7 +274,14 @@ export default async function DynamicPage({ params }: PageProps) {
     redirect("/");
   }
 
-  const page = (await fetchPageBySlug(slug)) as WpPage | null;
+  const { page } = await fetchPageForRequestSlug(slug);
+
+  if (page) {
+    const redirectPath = redirectPathIfNotCanonical(slug, page);
+    if (redirectPath) {
+      redirect(redirectPath);
+    }
+  }
 
   if (!page) {
     const post = await fetchPostBySlug(slug);
@@ -270,7 +295,7 @@ export default async function DynamicPage({ params }: PageProps) {
 
   const acf = page.acf;
   const pageTitle = page.title?.rendered;
-  const heroAcf = getHeroAcf(slug, acf);
+  const heroAcf = getHeroAcf(slug, acf, pageTitle);
 
   if (heroAcf) {
     return <PageWithHero page={page} hero={heroAcf} slug={slug} acf={acf} />;

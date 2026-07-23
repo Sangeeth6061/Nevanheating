@@ -43,6 +43,22 @@ export async function fetchPageBySlug(slug: string) {
   return pages[0] ?? null;
 }
 
+export type WpPageSummary = {
+  slug: string;
+  link?: string;
+  menu_order?: number;
+  title?: { rendered?: string };
+  acf?: Record<string, unknown>;
+};
+
+export async function fetchPublishedPages(): Promise<WpPageSummary[]> {
+  return (
+    (await wpFetch<WpPageSummary[]>(
+      "pages?per_page=100&status=publish&orderby=menu_order&order=asc"
+    )) ?? []
+  );
+}
+
 export async function fetchPostBySlug(slug: string) {
   const posts = (await wpFetch<unknown[]>(`posts?slug=${slug}&_embed`)) ?? [];
   return posts[0] ?? null;

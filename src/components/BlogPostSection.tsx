@@ -10,6 +10,7 @@ import {
   parseBlogSidebarBanner,
   type BlogPostDetail,
 } from "@/lib/blog";
+import { CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 
 type BlogPostSectionProps = {
   post: BlogPostDetail;
@@ -99,7 +100,7 @@ export default async function BlogPostSection({ post }: BlogPostSectionProps) {
               activeCategory={post.categorySlug ?? "all"}
               bannerTitle={banner.title}
               bannerDescription={banner.description}
-              quoteHref={banner.buttonHref ?? "#"}
+              quoteHref={CONTACT_QUOTE_HREF}
               quoteLabel={banner.buttonLabel ?? "Get a Quote"}
               linkCategories
             />

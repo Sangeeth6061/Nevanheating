@@ -1,0 +1,160 @@
+[
+  {
+    "key": "group_sub_service_plumbing_repairs",
+    "title": "Sub Service Landing Page",
+    "fields": [
+      {
+        "key": "field_sspr_tab_hero",
+        "label": "Section 1 — Hero",
+        "name": "",
+        "type": "tab",
+        "placement": "top"
+      },
+      {
+        "key": "field_sspr_breadcrumb_icon",
+        "label": "Breadcrumbs Icon",
+        "name": "sub_service_page_bread_crumb_icon",
+        "type": "image",
+        "return_format": "array",
+        "preview_size": "thumbnail",
+        "library": "all"
+      },
+      {
+        "key": "field_sspr_breadcrumb_text",
+        "label": "Breadcrumbs Text",
+        "name": "sub_services_page_1st_section_bread_crumbs_text",
+        "type": "text",
+        "instructions": "Example: Home > Services > All kind of plumbing & Repairs"
+      },
+      {
+        "key": "field_sspr_hero_title",
+        "label": "Hero Title",
+        "name": "services_page_1st_section_title",
+        "type": "text"
+      },
+      {
+        "key": "field_sspr_hero_text",
+        "label": "Hero Description",
+        "name": "services_page_1st_section_text_area",
+        "type": "textarea",
+        "rows": 3
+      },
+      {
+        "key": "field_sspr_tab_services",
+        "label": "Section 2 — Service List",
+        "name": "",
+        "type": "tab",
+        "placement": "top"
+      },
+      {
+        "key": "field_sspr_service_points",
+        "label": "Services We Offer",
+        "name": "add_a_sub_ser_points",
+        "type": "repeater",
+        "layout": "block",
+        "button_label": "Add Service",
+        "sub_fields": [
+          {
+            "key": "field_sspr_service_point_icon",
+            "label": "Icon",
+            "name": "add_a_sub_services_icon",
+            "type": "image",
+            "return_format": "array",
+            "preview_size": "thumbnail",
+            "library": "all",
+            "parent_repeater": "field_sspr_service_points"
+          },
+          {
+            "key": "field_sspr_service_point_text",
+            "label": "Service Name",
+            "name": "add_a__sub_service_point_text",
+            "type": "text",
+            "parent_repeater": "field_sspr_service_points"
+          }
+        ]
+      },
+      {
+        "key": "field_sspr_tab_main",
+        "label": "Section 3 — Main Content",
+        "name": "",
+        "type": "tab",
+        "placement": "top"
+      },
+      {
+        "key": "field_sspr_main_description",
+        "label": "Main Description",
+        "name": "sub_serv_page_main_description",
+        "type": "textarea",
+        "rows": 8,
+        "instructions": "Separate paragraphs with a blank line."
+      },
+      {
+        "key": "field_sspr_main_image",
+        "label": "Main Image",
+        "name": "add_a_sub_page_main_image",
+        "type": "image",
+        "return_format": "array",
+        "preview_size": "medium",
+        "library": "all"
+      },
+      {
+        "key": "field_sspr_tab_why",
+        "label": "Section 4 — Why Choose Us",
+        "name": "",
+        "type": "tab",
+        "placement": "top"
+      },
+      {
+        "key": "field_sspr_why_heading",
+        "label": "Why Choose Us Heading",
+        "name": "why_choose_us",
+        "type": "text"
+      },
+      {
+        "key": "field_sspr_why_points",
+        "label": "Why Choose Us Points",
+        "name": "add_a_why_choose_us_points",
+        "type": "repeater",
+        "layout": "block",
+        "button_label": "Add Point",
+        "sub_fields": [
+          {
+            "key": "field_sspr_why_icon",
+            "label": "Icon",
+            "name": "sub_ser_page_why_choose_us_point_icon",
+            "type": "image",
+            "return_format": "array",
+            "preview_size": "thumbnail",
+            "library": "all",
+            "parent_repeater": "field_sspr_why_points"
+          },
+          {
+            "key": "field_sspr_why_text",
+            "label": "Point Text",
+            "name": "sub_ser_page_why_choose_us_point_text",
+            "type": "textarea",
+            "rows": 2,
+            "instructions": "Format: Title: Description",
+            "parent_repeater": "field_sspr_why_points"
+          }
+        ]
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "page",
+          "operator": "==",
+          "value": "450"
+        }
+      ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "active": true,
+    "show_in_rest": 1
+  }
+]

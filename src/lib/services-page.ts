@@ -1,4 +1,5 @@
-import { acfImageUrl, type AcfLink, titleToSlug, wpUrlToPath } from "@/lib/wp-utils";
+import { acfImageUrl, type AcfLink, titleToSlug, wpUrlToPath, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
+import { resolveServiceSubpageHref } from "@/lib/legacy-service-redirects";
 
 export type ServicePagePoint = {
   text: string;
@@ -25,14 +26,21 @@ function acfStr(value: unknown): string | undefined {
 
 function getServiceSectionAnchor(link: AcfLink | undefined, title: string): string {
   const path = wpUrlToPath(link?.url);
-  const match = path.match(/\/service\/([^/?#]+)/);
-  if (match?.[1]) return match[1];
+  const servicesMatch = path.match(/\/services\/([^/?#]+)/);
+  if (servicesMatch?.[1]) return servicesMatch[1];
+
+  const legacyMatch = path.match(/\/service\/([^/?#]+)/);
+  if (legacyMatch?.[1]) return legacyMatch[1];
 
   return titleToSlug(title);
 }
 
+export function getServiceSubpageHref(sectionAnchor: string): string {
+  return resolveServiceSubpageHref(sectionAnchor);
+}
+
 function getServicesSectionHref(anchor: string): string {
-  return `/services#${anchor}`;
+  return getServiceSubpageHref(anchor);
 }
 
 function splitParagraphs(text?: string): string[] {
@@ -90,6 +98,13 @@ export function getServiceIconColorClasses(iconUrl?: string, iconName?: string) 
   return "bg-slate-50 border border-slate-100";
 }
 
+export function findServicePageItemBySlug(
+  slug: string,
+  acf?: Record<string, unknown> | null
+): ServicePageItem | undefined {
+  return parseServicesPageItems(acf).find((item) => item.sectionAnchor === slug);
+}
+
 export function parseServiceMenuItems(acf?: Record<string, unknown> | null): Array<{
   label: string;
   href: string;
@@ -126,7 +141,7 @@ export function parseServicesPageItems(acf?: Record<string, unknown> | null): Se
         iconName: icon && typeof icon === "object" ? icon.name : undefined,
         points: parseServicePagePoints(row.add_service_page_points),
         buttonLabel: link?.title?.trim() || "Get a Quote",
-        buttonHref: wpUrlToPath(link?.url),
+        buttonHref: CONTACT_QUOTE_HREF,
         imageUrl: acfImageUrl(image),
       };
     })

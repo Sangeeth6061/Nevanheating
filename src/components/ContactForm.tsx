@@ -68,7 +68,10 @@ export default function ContactForm({ services }: ContactFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)] px-6 py-7 md:px-8 md:py-8">
+    <div
+      id="contact-form"
+      className="scroll-mt-28 lg:scroll-mt-32 bg-white rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)] px-6 py-7 md:px-8 md:py-8"
+    >
       <h2 className="text-2xl md:text-[28px] font-bold text-[#1E293B] mb-2 font-heading">
         Request a Free Quote
       </h2>

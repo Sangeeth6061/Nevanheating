@@ -154,6 +154,7 @@ function postHref(slug?: string, link?: string): string {
 export function parseBlogPosts(posts: unknown[]): BlogPost[] {
   return posts
     .map((item, index): BlogPost | null => {
+      if (!item || typeof item !== "object") return null;
       const post = item as WpPostResponse;
       const title = stripHtml(post.title?.rendered);
       const excerpt = stripHtml(post.excerpt?.rendered) || stripHtml(post.content?.rendered);
@@ -180,6 +181,7 @@ export function parseBlogPosts(posts: unknown[]): BlogPost[] {
 }
 
 export function parseBlogPostDetail(post: unknown): BlogPostDetail | null {
+  if (!post || typeof post !== "object") return null;
   const parsed = parseBlogPosts([post])[0];
   if (!parsed) return null;
 

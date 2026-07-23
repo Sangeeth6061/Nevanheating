@@ -1,25 +1,20 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
-import {
-  getServiceIconColorClasses,
-  parseServicesPageItems,
-  type ServicePageItem,
-} from "@/lib/services-page";
-import ServicesHashScroller from "@/components/ServicesHashScroller";
+import { getServiceIconColorClasses, type ServicePageItem } from "@/lib/services-page";
 
-type ServicesPageSectionProps = {
-  acf?: Record<string, unknown>;
+type ServicePageBlockProps = {
+  service: ServicePageItem;
+  /** Alternating image side on multi-section layouts; sub-pages use 0 (image right). */
+  index?: number;
+  showTitle?: boolean;
 };
 
-function ServicePageBlock({ service, index }: { service: ServicePageItem; index: number }) {
+export default function ServicePageBlock({ service, index = 0, showTitle = true }: ServicePageBlockProps) {
   const imageOnLeft = index % 2 === 1;
   const iconColors = getServiceIconColorClasses(service.iconUrl, service.iconName);
 
   return (
-    <div
-      id={service.sectionAnchor}
-      className="scroll-mt-28 lg:scroll-mt-32 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 xl:gap-16 items-center"
-    >
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 xl:gap-16 items-center">
       <div className={imageOnLeft ? "order-2 lg:order-2" : "order-1 lg:order-1"}>
         {service.iconUrl && (
           <div
@@ -29,9 +24,11 @@ function ServicePageBlock({ service, index }: { service: ServicePageItem; index:
           </div>
         )}
 
-        <h2 className="text-2xl md:text-3xl lg:text-[34px] font-extrabold text-[#1E3A8A] leading-tight font-heading mb-4 md:mb-5">
-          {service.title}
-        </h2>
+        {showTitle && (
+          <h2 className="text-2xl md:text-3xl lg:text-[34px] font-extrabold text-[#1E3A8A] leading-tight font-heading mb-4 md:mb-5">
+            {service.title}
+          </h2>
+        )}
 
         {service.paragraphs.length > 0 ? (
           <div className="space-y-4 mb-6 md:mb-8">
@@ -89,23 +86,5 @@ function ServicePageBlock({ service, index }: { service: ServicePageItem; index:
         </div>
       )}
     </div>
-  );
-}
-
-export default function ServicesPageSection({ acf }: ServicesPageSectionProps) {
-  const services = parseServicesPageItems(acf);
-  if (services.length === 0) return null;
-
-  return (
-    <section className="w-full bg-white">
-      <ServicesHashScroller />
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-12 md:py-16 lg:py-20">
-        <div className="flex flex-col gap-16 md:gap-20 lg:gap-24">
-          {services.map((service, index) => (
-            <ServicePageBlock key={service.id} service={service} index={index} />
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }

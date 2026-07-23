@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { fetchHeader, fetchHomePage, fetchPageBySlug } from "@/lib/wordpress";
+import { fetchHomePage, fetchPageBySlug } from "@/lib/wordpress";
 import { acfStr, extractCtaBannerAcf } from "@/lib/cta-banner";
-import { CONTACT_NUMBER, telHref, wpUrlToPath } from "@/lib/wp-utils";
+import { CONTACT_NUMBER, telHref, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 
 async function resolveCtaAcf() {
   const headersList = await headers();
@@ -22,7 +22,7 @@ async function resolveCtaAcf() {
 }
 
 export default async function CtaBanner() {
-  const [ctaData, headerData] = await Promise.all([resolveCtaAcf(), fetchHeader()]);
+  const ctaData = await resolveCtaAcf();
 
   const title = acfStr(ctaData, "5th_section_banner_title");
   if (!title) return null;
@@ -32,7 +32,6 @@ export default async function CtaBanner() {
   const secondButtonLabel = acfStr(ctaData, "5th_section_2nd_button_link");
   const callIcon = (ctaData?.["5th_section_call_icon"] as { url?: string } | undefined)?.url;
   const secondButtonImage = (ctaData?.["5th_section_2nd_button_image"] as { url?: string } | undefined)?.url;
-  const quoteLink = wpUrlToPath((headerData?.button_link as { url?: string } | undefined)?.url);
 
   return (
     <section className="bg-[#2563EB] w-full">
@@ -64,7 +63,7 @@ export default async function CtaBanner() {
 
             {secondButtonLabel && (
               <Link
-                href={quoteLink}
+                href={CONTACT_QUOTE_HREF}
                 className="inline-flex items-center justify-center gap-2.5 border-2 border-white text-white font-semibold text-[15px] px-7 py-3.5 rounded-lg hover:bg-white/10 transition-colors"
               >
                 <span>{secondButtonLabel}</span>

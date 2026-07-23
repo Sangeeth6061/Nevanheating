@@ -30,6 +30,7 @@ function Breadcrumbs({
           {parts.map((part, index) => {
             const isHome = part.toLowerCase() === "home";
             const isBlog = part.toLowerCase() === "blog";
+            const isServices = part.toLowerCase() === "services";
             const isLast = index === parts.length - 1;
             return (
               <li key={index} className="flex items-center gap-1.5">
@@ -40,6 +41,10 @@ function Breadcrumbs({
                   </Link>
                 ) : isBlog && !isLast ? (
                   <Link href="/blog" className="hover:text-white transition-colors">
+                    {part}
+                  </Link>
+                ) : isServices && !isLast ? (
+                  <Link href="/services" className="hover:text-white transition-colors">
                     {part}
                   </Link>
                 ) : (
