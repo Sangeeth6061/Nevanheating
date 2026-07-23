@@ -1,5 +1,5 @@
 import { acfImageUrl, wpUrlToPath } from "@/lib/wp-utils";
-import { stripHtml } from "@/lib/blog";
+import { stripHtml } from "@/lib/html";
 
 /** First sub-service landing page (legacy export for deep links). */
 export const ALL_KIND_PLUMBING_REPAIRS_SLUG = "all-kind-of-plumbing-repairs";
@@ -19,7 +19,7 @@ function getAcfValue(
   acf: Record<string, unknown> | null | undefined,
   canonicalName: string
 ): unknown {
-  if (!acf) return undefined;
+  if (!acf || typeof acf !== "object" || Array.isArray(acf)) return undefined;
   if (Object.prototype.hasOwnProperty.call(acf, canonicalName)) {
     return acf[canonicalName];
   }
@@ -47,7 +47,7 @@ function getRowValue(row: Record<string, unknown>, ...canonicalNames: string[]):
 
 /** Same ACF shape as `/all-kind-of-plumbing-repairs` (hero + list + main + why choose us). */
 export function isSubServiceLandingPage(acf?: Record<string, unknown> | null): boolean {
-  if (!acf) return false;
+  if (!acf || typeof acf !== "object" || Array.isArray(acf)) return false;
   const servicePointsRaw = getAcfValue(acf, "add_a_sub_ser_points");
   if (Array.isArray(servicePointsRaw) && servicePointsRaw.length > 0) return true;
   const mainDescription = getAcfValue(acf, "sub_serv_page_main_description");

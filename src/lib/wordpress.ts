@@ -1,13 +1,21 @@
-const NEXT_PUBLIC_WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL?.replace(/\/$/, "");
+const WP_BASE = (
+  process.env.WORDPRESS_URL ??
+  process.env.NEXT_PUBLIC_WORDPRESS_URL ??
+  ""
+).replace(/\/$/, "");
+
+function asArray<T>(value: T | null | undefined): T extends (infer U)[] ? T : [] {
+  return (Array.isArray(value) ? value : []) as T extends (infer U)[] ? T : [];
+}
 
 async function wpFetch<T>(path: string): Promise<T | null> {
-  if (!NEXT_PUBLIC_WORDPRESS_URL) {
-    console.warn("NEXT_PUBLIC_WORDPRESS_URL is not defined in .env.local");
+  if (!WP_BASE) {
+    console.warn("WORDPRESS_URL / NEXT_PUBLIC_WORDPRESS_URL is not defined");
     return null;
   }
 
   try {
-    const res = await fetch(`${NEXT_PUBLIC_WORDPRESS_URL}/wp-json/wp/v2/${path}`, {
+    const res = await fetch(`${WP_BASE}/wp-json/wp/v2/${path}`, {
       next: { revalidate: 60 },
     });
 
@@ -39,7 +47,8 @@ export async function fetchHomePage() {
 }
 
 export async function fetchPageBySlug(slug: string) {
-  const pages = (await wpFetch<unknown[]>(`pages?slug=${slug}&_embed`)) ?? [];
+  const encoded = encodeURIComponent(slug);
+  const pages = asArray(await wpFetch<unknown[]>(`pages?slug=${encoded}&_embed`));
   return pages[0] ?? null;
 }
 
@@ -52,10 +61,10 @@ export type WpPageSummary = {
 };
 
 export async function fetchPublishedPages(): Promise<WpPageSummary[]> {
-  return (
-    (await wpFetch<WpPageSummary[]>(
+  return asArray(
+    await wpFetch<WpPageSummary[]>(
       "pages?per_page=100&status=publish&orderby=menu_order&order=asc"
-    )) ?? []
+    )
   );
 }
 

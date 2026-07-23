@@ -1,17 +1,18 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fetchPageBySlug, fetchPublishedPages } from "@/lib/wordpress";
+import { fetchPageBySlug } from "@/lib/wordpress";
 import { getLegacyPageRedirectPath } from "@/lib/page-route";
 import {
   getLegacyServiceSectionRedirect,
   resolveServiceSubpageHref,
 } from "@/lib/legacy-service-redirects";
-import {
-  filterSubServiceLandingPages,
-  isSubServiceLandingPage,
-} from "@/lib/sub-service-page";
+import { isSubServiceLandingPage } from "@/lib/sub-service-page";
 import SubServiceLandingPageView from "@/components/SubServiceLandingPageView";
-import { stripHtml } from "@/lib/blog";
+import { stripHtml } from "@/lib/html";
+
+/** Avoid stale static shells on Vercel; always fetch WordPress at request time. */
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -34,21 +35,18 @@ function landingSlugFromHref(href: string): string {
   return parts[parts.length - 1] ?? "";
 }
 
-export async function generateStaticParams() {
-  const publishedPages = await fetchPublishedPages();
-  return filterSubServiceLandingPages(publishedPages).map((page) => ({
-    slug: page.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const legacyService = getLegacyServiceSectionRedirect(slug);
-  const lookupSlug = legacyService ? landingSlugFromHref(legacyService) : slug;
+  try {
+    const { slug } = await params;
+    const legacyService = getLegacyServiceSectionRedirect(slug);
+    const lookupSlug = legacyService ? landingSlugFromHref(legacyService) : slug;
 
-  const landing = await fetchSubServiceLandingBySlug(lookupSlug);
-  if (landing?.title?.rendered) {
-    return { title: stripHtml(landing.title.rendered) };
+    const landing = await fetchSubServiceLandingBySlug(lookupSlug);
+    if (landing?.title?.rendered) {
+      return { title: stripHtml(landing.title.rendered) };
+    }
+  } catch (error) {
+    console.error("services/[slug] generateMetadata:", error);
   }
 
   return {};

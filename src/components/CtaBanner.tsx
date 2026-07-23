@@ -1,28 +1,39 @@
+"use client";
+
 import Link from "next/link";
-import { headers } from "next/headers";
-import { fetchHomePage, fetchPageBySlug } from "@/lib/wordpress";
-import { acfStr, extractCtaBannerAcf } from "@/lib/cta-banner";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { CtaBannerAcf } from "@/lib/cta-banner";
+import { acfStr } from "@/lib/cta-banner";
+import { pageSlugFromPathname } from "@/lib/resolve-cta-banner";
 import { CONTACT_NUMBER, telHref, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 
-async function resolveCtaAcf() {
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "/";
+export default function CtaBanner() {
+  const pathname = usePathname();
+  const pageSlug = pageSlugFromPathname(pathname);
+  const [ctaData, setCtaData] = useState<CtaBannerAcf | null>(null);
 
-  const pageSlug = pathname === "/" ? "home" : pathname.replace(/^\//, "").split("/")[0];
+  useEffect(() => {
+    let cancelled = false;
+    const query = new URLSearchParams({ slug: pageSlug });
 
-  if (pageSlug !== "home") {
-    const page = (await fetchPageBySlug(pageSlug)) as { acf?: Record<string, unknown> } | null;
-    const fromPage = extractCtaBannerAcf(page?.acf);
-    if (fromPage) return fromPage;
-  }
+    fetch(`/api/cta-banner?${query}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: CtaBannerAcf | null) => {
+        if (!cancelled && data && acfStr(data, "5th_section_banner_title")) {
+          setCtaData(data);
+        } else if (!cancelled) {
+          setCtaData(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCtaData(null);
+      });
 
-  const homePages = await fetchHomePage();
-  const homePage = homePages?.[0] as { acf?: Record<string, unknown> } | undefined;
-  return extractCtaBannerAcf(homePage?.acf);
-}
-
-export default async function CtaBanner() {
-  const ctaData = await resolveCtaAcf();
+    return () => {
+      cancelled = true;
+    };
+  }, [pageSlug]);
 
   const title = acfStr(ctaData, "5th_section_banner_title");
   if (!title) return null;
@@ -55,7 +66,7 @@ export default async function CtaBanner() {
                 <img src={callIcon} alt="" className="w-5 h-5 object-contain" />
               ) : (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
+                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
                 </svg>
               )}
               <span>{callLabel || CONTACT_NUMBER}</span>
