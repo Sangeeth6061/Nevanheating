@@ -3,7 +3,6 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { fetchFooter } from "@/lib/wordpress";
 import {
   acfImageUrl,
-  acfLegalLinkHref,
   acfLinkHref,
   wpUrlToPath,
   CONTACT_NUMBER,
@@ -94,7 +93,6 @@ export default async function Footer() {
   const servicesTitle = footerData.ft_col_3_title as string | undefined;
   const contactTitle = footerData.ft_col_4_title as string | undefined;
   const copyright = footerData.copyright_part as string | undefined;
-  const privacyLink = footerData.pr as AcfLink | undefined;
   const termsLink = footerData.terms_of_services as AcfLink | undefined;
 
   const quickLinks = (footerData.quick_links as QuickLinkItem[] | undefined) ?? [];
@@ -102,7 +100,7 @@ export default async function Footer() {
   const contactItems = (footerData.add_contact_info as ContactItem[] | undefined) ?? [];
   const socialIcons = (footerData.social_icons as SocialItem[] | undefined) ?? [];
 
-  const showBottomBar = copyright || privacyLink?.title || termsLink?.title;
+  const showBottomBar = copyright || termsLink?.title;
 
   return (
     <footer className="bg-[#1a2b4d] text-white w-full">
@@ -286,14 +284,12 @@ export default async function Footer() {
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             {copyright && <p className="text-slate-400 text-xs sm:text-sm">{copyright}</p>}
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-6 text-xs sm:text-sm">
-              {privacyLink?.title && (
-                <Link href={acfLegalLinkHref(privacyLink)} className="text-slate-400 hover:text-white transition-colors">
-                  {privacyLink.title}
-                </Link>
-              )}
               {termsLink?.title && (
-                <Link href={acfLegalLinkHref(termsLink)} className="text-slate-400 hover:text-white transition-colors">
-                  {termsLink.title}
+                <Link
+                  href="/terms-and-conditions"
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Terms and Conditions
                 </Link>
               )}
             </div>

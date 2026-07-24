@@ -63,9 +63,9 @@ export default function HeroSlider({
       >
         {slides.map((slide, index) => (
           <div key={index} className="w-full shrink-0">
-            <section className="px-4 sm:px-6 md:px-12 lg:px-16 pt-2 pb-6 sm:py-8 lg:py-20 max-w-[1400px] mx-auto w-full flex flex-col lg:grid lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-8 items-start lg:items-center">
+            <section className="px-6 sm:px-6 md:px-12 lg:px-16 pt-2 pb-16 sm:py-8 lg:py-20 max-w-[1400px] mx-auto w-full flex flex-col lg:grid lg:grid-cols-12 gap-5 sm:gap-8 lg:gap-8 items-start lg:items-center">
               {/* Mobile: image + badge directly below header */}
-              <div className="order-1 w-full lg:order-2 relative h-[clamp(176px,38vh,220px)] sm:h-[340px] lg:h-[640px] xl:h-[700px] rounded-bl-[24px] sm:rounded-bl-[40px] rounded-br-[8px] rounded-tl-[8px] rounded-tr-[24px] sm:rounded-tr-[40px] overflow-hidden lg:overflow-visible lg:col-span-5 z-10 shrink-0 mb-2 sm:mb-14 lg:mb-0">
+              <div className="order-1 w-full max-w-[520px] sm:max-w-none mx-auto sm:mx-0 lg:order-2 relative h-[clamp(260px,52vh,360px)] sm:h-[420px] lg:h-[680px] xl:h-[740px] rounded-bl-[24px] sm:rounded-bl-[40px] rounded-br-[8px] rounded-tl-[8px] rounded-tr-[24px] sm:rounded-tr-[40px] overflow-hidden lg:overflow-visible lg:col-span-5 z-10 shrink-0 mb-1 sm:mb-14 lg:mb-0">
                 {slide.slider_image?.url && (
                   <img
                     src={slide.slider_image.url}
@@ -95,31 +95,31 @@ export default function HeroSlider({
               </div>
 
               {/* Mobile: text content below image */}
-              <div className="order-2 w-full lg:order-1 flex flex-col lg:col-span-7 pr-0 lg:pr-8 xl:pr-12 relative min-h-0 min-w-0">
-                <h1 className="text-[24px] sm:text-[40px] md:text-[56px] xl:text-[60px] leading-[1.1] font-bold text-[#1e40af] mb-1.5 sm:mb-6 tracking-tight">
+              <div className="order-2 w-full max-w-[520px] sm:max-w-none mx-auto sm:mx-0 lg:order-1 flex flex-col lg:col-span-7 pr-0 lg:pr-8 xl:pr-12 relative min-h-0 min-w-0 pt-1 sm:pt-0">
+                <h1 className="text-[26px] sm:text-[40px] md:text-[56px] xl:text-[60px] leading-[1.15] sm:leading-[1.1] font-bold text-[#1e40af] mb-3 sm:mb-6 tracking-tight">
                   {slide.heading_h1}
                 </h1>
 
-                <p className="text-[14px] sm:text-lg text-slate-600 mb-2.5 sm:mb-8 max-w-[600px] leading-relaxed line-clamp-2 sm:line-clamp-none">
+                <p className="text-[15px] sm:text-lg text-slate-600 mb-4 sm:mb-8 max-w-[600px] leading-relaxed">
                   {slide.phargarph_slider2}
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-y-1 sm:gap-y-4 gap-x-3 sm:gap-x-8 mb-2.5 sm:mb-10 w-full max-w-[600px]">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-y-2.5 sm:gap-y-4 gap-x-3 sm:gap-x-8 mb-5 sm:mb-10 w-full max-w-[600px]">
                   {slide.features?.map((item, i) => (
-                    <div key={i} className="flex items-start gap-1.5 sm:gap-3 text-[#1e3a8a] font-medium text-[11px] sm:text-[15px] min-w-0">
-                      <div className="shrink-0 w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full border-[1.5px] border-[#2563EB] flex items-center justify-center bg-white mt-0.5">
+                    <div key={i} className="flex items-start gap-2 sm:gap-3 text-[#1e3a8a] font-medium text-[12px] sm:text-[15px] min-w-0">
+                      <div className="shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[1.5px] border-[#2563EB] flex items-center justify-center bg-white mt-0.5">
                         {item.slider_2_icon?.url ? (
                           <img src={item.slider_2_icon.url} alt="" className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 object-contain" />
                         ) : (
                           <Check className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-[#2563EB]" strokeWidth={3} />
                         )}
                       </div>
-                      <span className="leading-tight line-clamp-2 sm:line-clamp-none">{item.slider_2_feature}</span>
+                      <span className="leading-snug sm:leading-normal">{item.slider_2_feature}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-0 sm:mb-14 w-full">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-14 w-full">
                   {quoteButtonText && quoteButtonLink && (
                     <Link
                       href={quoteButtonLink}
@@ -171,7 +171,7 @@ export default function HeroSlider({
       </div>
 
       {slides.length > 1 && (
-        <div className="absolute bottom-0 sm:bottom-6 left-0 right-0 flex gap-3 justify-center z-30 translate-y-3 sm:translate-y-0">
+        <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 flex gap-3 justify-center z-30">
           {slides.map((_, i) => (
             <button
               key={i}

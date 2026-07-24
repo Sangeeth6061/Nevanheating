@@ -13,6 +13,7 @@ type WpPage = {
 /** Retired WordPress slugs → canonical Next.js pathname. */
 const LEGACY_PAGE_PATHS: Record<string, string> = {
   "500-2": "/services/certified-gas-services-safety-inspections",
+  "terms-of-service": "/terms-and-conditions",
 };
 
 function normalizePathSegment(segment: string): string {

@@ -28,6 +28,8 @@ import { parseAboutStats } from "@/lib/about-stats";
 import { parseAboutTeamMembers } from "@/lib/about-team";
 import { parseAboutValueCards } from "@/lib/about-values";
 import { parseGalleryItems } from "@/lib/gallery";
+import TermsAndConditionsSection from "@/components/TermsAndConditionsSection";
+import { isTermsAndConditionsPage } from "@/lib/legal-page";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -144,6 +146,14 @@ function getHeroAcf(
     };
   }
 
+  if (isTermsAndConditionsPage(slug, acf)) {
+    return {
+      title: pageTitleHtml ? stripHtml(pageTitleHtml) : "Terms and Conditions",
+      breadcrumbsText: "Home > Terms and Conditions",
+      fallbackTitle: true,
+    };
+  }
+
   if (isSubServiceLandingPage(acf)) {
     return getSubServicePageHero(acf, pageTitleHtml);
   }
@@ -238,6 +248,10 @@ function PageWithHero({
       {slug === "contact" && <ContactLocationMapSection acf={acf} />}
 
       {slug === "services" && <ServicesOverviewSection acf={acf} />}
+
+      {slug && isTermsAndConditionsPage(slug, acf) && (
+        <TermsAndConditionsSection acf={acf} />
+      )}
 
       {subServiceContent && <SubServicePageSection content={subServiceContent} />}
 
