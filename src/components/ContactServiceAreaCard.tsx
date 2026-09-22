@@ -10,9 +10,10 @@ export default function ContactServiceAreaCard({ serviceArea }: ContactServiceAr
       <h3 className="text-base md:text-lg font-bold text-[#1E293B] mb-2 font-heading">
         {serviceArea.title}
       </h3>
-      <p className="text-sm md:text-[15px] text-[#64748B] leading-relaxed">
-        {serviceArea.description}
-      </p>
+      <div
+        className="wp-rich-text text-sm md:text-[15px] text-[#64748B] leading-relaxed"
+        dangerouslySetInnerHTML={{ __html: serviceArea.description }}
+      />
     </div>
   );
 }

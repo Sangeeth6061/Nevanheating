@@ -33,7 +33,12 @@ export default function AboutCoreValuesSection({
         )}
 
         {cards.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+          <div
+            className={[
+              "grid grid-cols-1 gap-5 md:gap-6",
+              cards.length === 3 ? "md:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4",
+            ].join(" ")}
+          >
             {cards.map((card) => (
               <article
                 key={card.id}
@@ -52,9 +57,10 @@ export default function AboutCoreValuesSection({
                   </h3>
                 )}
                 {card.description && (
-                  <p className="text-[#64748B] text-[15px] md:text-base leading-relaxed">
-                    {card.description}
-                  </p>
+                  <div
+                    className="wp-rich-text text-[#64748B] text-[15px] md:text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: card.description }}
+                  />
                 )}
               </article>
             ))}

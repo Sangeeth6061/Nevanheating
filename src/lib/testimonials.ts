@@ -1,6 +1,8 @@
 export type TestimonialItem = {
   id: string;
   starUrls: string[];
+  /** Numeric star rating (e.g. Google reviews); overrides `starUrls` when set. */
+  rating?: number;
   quoteIconUrl?: string;
   message?: string;
   initials?: string;

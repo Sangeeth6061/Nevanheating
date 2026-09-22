@@ -123,10 +123,10 @@ export function parseContactEmergencyBanner(
   acf?: Record<string, unknown> | null
 ): ContactEmergencyBannerData | null {
   const message = acfStr(acf, "contact_page_emergency_");
-  const phoneRaw = acfStr(acf, "contact_page_emegency_number");
   const phoneFromCard = findContactCardPhone(acf);
 
-  if (!message && !phoneFromCard && !phoneRaw) return null;
+  // Banner is controlled from WordPress: clearing the emergency message hides it.
+  if (!message) return null;
 
   const phoneValue = phoneFromCard ?? CONTACT_NUMBER;
   const iconUrl =
@@ -134,7 +134,7 @@ export function parseContactEmergencyBanner(
     acfImageUrl(acf?.contact_page_emergency_icon as { url?: string } | false | null | undefined);
 
   return {
-    message: message ?? "24/7 Plumbing Emergency? Don't wait — call us now.",
+    message,
     phoneDisplay: formatPhoneDisplay(phoneValue),
     phoneHref: telHref(normalizePhoneForTel(phoneValue)),
     iconUrl,
