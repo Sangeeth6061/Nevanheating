@@ -3,18 +3,29 @@ import { parseRatingCards } from "@/lib/rating-cards";
 import { parseTestimonials } from "@/lib/testimonials";
 import RatingCardsRow from "@/components/RatingCardsRow";
 import TestimonialsPageCarousel from "@/components/TestimonialsPageCarousel";
+import GoogleReviewsAttribution from "@/components/GoogleReviewsAttribution";
+import {
+  fetchGoogleReviews,
+  googleRatingSummary,
+  googleReviewsToTestimonials,
+} from "@/lib/google-reviews";
 
 type TestimonialsSectionProps = {
   acf?: Record<string, unknown>;
 };
 
 export default async function TestimonialsSection({ acf }: TestimonialsSectionProps) {
-  const homePages = await fetchHomePage();
+  const [homePages, googleReviews] = await Promise.all([fetchHomePage(), fetchGoogleReviews()]);
   const homeAcf = (homePages?.[0] as { acf?: Record<string, unknown> } | undefined)?.acf;
-  const ratingCards = parseRatingCards(acf);
-  const testimonials = parseTestimonials(
-    homeAcf?.["4th_sectioon_testimonials"] as unknown[] | undefined
-  );
+  const googleSummary = googleRatingSummary(googleReviews);
+  const ratingCards = parseRatingCards(acf, googleSummary);
+
+  // Synced Google reviews take priority; ACF testimonials remain as a fallback.
+  const googleTestimonials = googleReviewsToTestimonials(googleReviews?.reviews ?? []);
+  const testimonials =
+    googleTestimonials.length > 0
+      ? googleTestimonials
+      : parseTestimonials(homeAcf?.["4th_sectioon_testimonials"] as unknown[] | undefined);
 
   if (ratingCards.length === 0 && testimonials.length === 0) return null;
 
@@ -25,6 +36,7 @@ export default async function TestimonialsSection({ acf }: TestimonialsSectionPr
       {testimonials.length > 0 && (
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-14 md:pt-16 lg:pt-20 pb-14 md:pb-16 lg:pb-20">
           <TestimonialsPageCarousel testimonials={testimonials} />
+          {googleTestimonials.length > 0 && <GoogleReviewsAttribution summary={googleSummary} />}
         </div>
       )}
     </section>

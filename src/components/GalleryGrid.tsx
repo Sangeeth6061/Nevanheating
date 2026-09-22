@@ -1,31 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
-import { getGalleryCategories, type GalleryItem } from "@/lib/gallery";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import type { GalleryItem } from "@/lib/gallery";
 
 type GalleryGridProps = {
   items: GalleryItem[];
 };
 
 export default function GalleryGrid({ items }: GalleryGridProps) {
-  const categories = useMemo(() => ["All", ...getGalleryCategories(items)], [items]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightboxItem = lightboxIndex === null ? null : items[lightboxIndex];
 
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
+  const closeLightbox = useCallback(() => setLightboxIndex(null), []);
 
-  const filteredItems = useMemo(() => {
-    if (activeCategory === "All") return items;
-    return items.filter((item) => item.category === activeCategory);
-  }, [activeCategory, items]);
+  const showNext = useCallback(() => {
+    setLightboxIndex((index) => (index === null ? index : (index + 1) % items.length));
+  }, [items.length]);
 
-  const closeLightbox = useCallback(() => setLightboxItem(null), []);
+  const showPrev = useCallback(() => {
+    setLightboxIndex((index) =>
+      index === null ? index : (index - 1 + items.length) % items.length
+    );
+  }, [items.length]);
 
   useEffect(() => {
-    if (!lightboxItem) return;
+    if (lightboxIndex === null) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeLightbox();
+      if (event.key === "ArrowRight") showNext();
+      if (event.key === "ArrowLeft") showPrev();
     };
 
     document.body.style.overflow = "hidden";
@@ -35,7 +40,7 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [closeLightbox, lightboxItem]);
+  }, [closeLightbox, lightboxIndex, showNext, showPrev]);
 
   if (items.length === 0) return null;
 
@@ -43,31 +48,8 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
     <>
       <section className="w-full bg-white">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 pt-12 md:pt-14 lg:pt-16 pb-14 md:pb-16 lg:pb-20">
-          {categories.length > 1 && (
-            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 mb-10 md:mb-12">
-              {categories.map((category) => {
-                const isActive = activeCategory === category;
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => setActiveCategory(category)}
-                    className={[
-                      "inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition-colors",
-                      isActive
-                        ? "bg-[#2563EB] text-white shadow-sm"
-                        : "bg-[#E8EEF7] text-[#334155] hover:bg-[#DDE7F5]",
-                    ].join(" ")}
-                  >
-                    {category}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {filteredItems.map((item) => (
+            {items.map((item, index) => (
               <article
                 key={item.id}
                 className="rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.06)]"
@@ -75,21 +57,16 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
                 {item.imageUrl && (
                   <button
                     type="button"
-                    onClick={() => setLightboxItem(item)}
-                    className="group relative block w-full aspect-[4/3] overflow-hidden cursor-pointer"
+                    onClick={() => setLightboxIndex(index)}
+                    className="group relative block w-full aspect-[4/5] overflow-hidden cursor-pointer"
                     aria-label={item.title ? `View ${item.title}` : "View gallery image"}
                   >
                     <img
-                      src={item.imageUrl}
-                      alt={item.title || "Gallery project"}
+                      src={item.thumbUrl ?? item.imageUrl}
+                      alt={item.alt || item.title || "Gallery project"}
+                      loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                     />
-
-                    {item.category && (
-                      <span className="absolute top-4 left-4 z-10 bg-white text-[#1E293B] text-sm font-semibold px-4 py-1.5 rounded-full shadow-sm">
-                        {item.category}
-                      </span>
-                    )}
 
                     <div className="absolute inset-0 bg-[#0f172a]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
@@ -128,7 +105,7 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
 
       {lightboxItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-8 sm:px-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 py-8 sm:px-16"
           onClick={closeLightbox}
           role="dialog"
           aria-modal="true"
@@ -143,18 +120,43 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
             <X className="h-7 w-7" strokeWidth={2} />
           </button>
 
+          {items.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPrev();
+                }}
+                className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNext();
+                }}
+                className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          )}
+
           <div
-            className="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="relative flex max-h-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             {lightboxItem.imageUrl && (
-              <div className="aspect-[16/10] w-full overflow-hidden bg-slate-100">
-                <img
-                  src={lightboxItem.imageUrl}
-                  alt={lightboxItem.title || "Gallery project"}
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              <img
+                src={lightboxItem.imageUrl}
+                alt={lightboxItem.alt || lightboxItem.title || "Gallery project"}
+                className="block max-h-[85vh] w-auto max-w-full object-contain bg-slate-100"
+              />
             )}
 
             {(lightboxItem.title || lightboxItem.location) && (

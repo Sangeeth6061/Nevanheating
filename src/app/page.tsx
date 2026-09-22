@@ -4,6 +4,13 @@ import { fetchHomePage, fetchHeader, fetchServices } from "@/lib/wordpress";
 import { findMenuPath, findServicePath, wpUrlToPath, CONTACT_NUMBER, telHref, CONTACT_QUOTE_HREF } from "@/lib/wp-utils";
 import HeroSlider from "@/components/HeroSlider";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+import GoogleReviewsAttribution from "@/components/GoogleReviewsAttribution";
+import { parseTestimonials } from "@/lib/testimonials";
+import {
+  fetchGoogleReviews,
+  googleRatingSummary,
+  googleReviewsToTestimonials,
+} from "@/lib/google-reviews";
 
 type AcfRecord = Record<string, unknown>;
 type ServicePost = { slug: string; title: { rendered: string }; link: string };
@@ -95,10 +102,11 @@ function buildHeroStats(homeData: AcfRecord | null) {
 }
 
 export default async function Home() {
-  const [homePages, headerData, services] = await Promise.all([
+  const [homePages, headerData, services, googleReviews] = await Promise.all([
     fetchHomePage(),
     fetchHeader(),
     fetchServices(),
+    fetchGoogleReviews(),
   ]);
 
   const homeData = (homePages?.[0] as { acf?: AcfRecord } | undefined)?.acf ?? null;
@@ -129,7 +137,13 @@ export default async function Home() {
   const slider = homeData?.slider as unknown[] | undefined;
   const serviceCards = (homeData?.service_card as AcfRecord[] | undefined) ?? [];
   const whyChooseUsPoints = (homeData?.["add_3rd_section_why_choose_us_points"] as AcfRecord[] | undefined) ?? [];
-  const testimonials = (homeData?.["4th_sectioon_testimonials"] as AcfRecord[] | undefined) ?? [];
+  // Synced Google reviews take priority; ACF testimonials remain as a fallback.
+  const googleTestimonials = googleReviewsToTestimonials(googleReviews?.reviews ?? []);
+  const testimonials =
+    googleTestimonials.length > 0
+      ? googleTestimonials
+      : parseTestimonials(homeData?.["4th_sectioon_testimonials"] as unknown[] | undefined);
+  const googleSummary = googleTestimonials.length > 0 ? googleRatingSummary(googleReviews) : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-slate-900">
@@ -337,6 +351,7 @@ export default async function Home() {
             </div>
 
             <TestimonialsCarousel testimonials={testimonials} />
+            <GoogleReviewsAttribution summary={googleSummary} />
           </div>
         </section>
       )}

@@ -2,27 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { TestimonialMessage, TestimonialStars } from "@/components/TestimonialCard";
+import type { TestimonialItem } from "@/lib/testimonials";
 
 const DESKTOP_VISIBLE_COUNT = 3;
 const MOBILE_VISIBLE_COUNT = 1;
 const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
 
-const STAR_KEYS = [
-  "4th_testimonials_stars",
-  "4th_testimonials_stars_2",
-  "4th_testimonials_stars_3",
-  "4th_testimonials_stars_4",
-  "5th_testimonials_stars_5",
-] as const;
-
-const getStars = (testimonial: Record<string, unknown>) =>
-  STAR_KEYS.map((key) => {
-    const star = testimonial[key] as { url?: string } | undefined;
-    return star?.url;
-  }).filter((url): url is string => Boolean(url));
-
 interface TestimonialsCarouselProps {
-  testimonials: Record<string, unknown>[];
+  testimonials: TestimonialItem[];
 }
 
 export default function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps) {
@@ -105,43 +93,19 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
             transform: `translateX(-${currentIndex * slideWidthPercent}%)`,
           }}
         >
-          {testimonials.map((testimonial, index) => {
-            const stars = getStars(testimonial);
-            const quoteIconUrl = (testimonial["4th_section_quotes_icon"] as { url?: string } | undefined)?.url;
-            const message = testimonial["4th_section_customer_message"] as string | undefined;
-            const initials = String(testimonial["4th_section_user_image"] ?? "").trim();
-            const fullName = (testimonial["4th_section_full_name"] as string | undefined)?.trim();
-            const location = testimonial["$th_section_full_name"] as string | undefined;
-
+          {testimonials.map((testimonial) => {
             return (
               <div
-                key={index}
+                key={testimonial.id}
                 className="shrink-0 px-2 sm:px-3"
                 style={{ width: `${slideWidthPercent}%` }}
               >
                 <div className="bg-[#F8FAFC] rounded-xl p-5 sm:p-8 lg:p-10 shadow-[0_2px_16px_rgba(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-full min-h-[240px] sm:min-h-[280px]">
                   <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-1">
-                      {stars.length > 0 ? (
-                        stars.map((starUrl, starIndex) => (
-                          <img
-                            key={starIndex}
-                            src={starUrl}
-                            alt=""
-                            className="w-4 h-4 object-contain"
-                          />
-                        ))
-                      ) : (
-                        Array.from({ length: 5 }).map((_, starIndex) => (
-                          <span key={starIndex} className="text-[#FBBF24] text-base leading-none">
-                            ★
-                          </span>
-                        ))
-                      )}
-                    </div>
-                    {quoteIconUrl ? (
+                    <TestimonialStars testimonial={testimonial} />
+                    {testimonial.quoteIconUrl ? (
                       <img
-                        src={quoteIconUrl}
+                        src={testimonial.quoteIconUrl}
                         alt=""
                         className="w-10 h-10 object-contain opacity-20 shrink-0"
                       />
@@ -152,23 +116,21 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
                     )}
                   </div>
 
-                  <p className="text-[#4B5563] text-[15px] leading-[1.7] flex-1 mb-8">
-                    {message}
-                  </p>
+                  <TestimonialMessage message={testimonial.message} />
 
                   <div className="flex items-center gap-3 mt-auto">
                     <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center shrink-0">
                       <span className="text-white text-sm font-bold uppercase tracking-wide">
-                        {initials || "?"}
+                        {testimonial.initials || "?"}
                       </span>
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-[#1E3A8A] text-base leading-tight">
-                        {fullName}
+                        {testimonial.fullName}
                       </span>
-                      {location && (
+                      {testimonial.location && (
                         <span className="text-[#9CA3AF] text-sm leading-tight mt-0.5">
-                          {location}
+                          {testimonial.location}
                         </span>
                       )}
                     </div>

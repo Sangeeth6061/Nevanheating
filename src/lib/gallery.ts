@@ -1,8 +1,10 @@
 export type GalleryItem = {
   id: string;
   imageUrl?: string;
+  /** Smaller WordPress rendition for the grid; falls back to the full image. */
+  thumbUrl?: string;
+  alt?: string;
   title?: string;
-  category?: string;
   location?: string;
 };
 
@@ -17,13 +19,17 @@ export function parseGalleryItems(acf?: Record<string, unknown> | null): Gallery
   return items
     .map((item, index) => {
       const row = item as Record<string, unknown>;
-      const image = row.add_a_image as { url?: string } | undefined;
+      const image = row.add_a_image as
+        | { url?: string; alt?: string; sizes?: Record<string, unknown> }
+        | undefined;
+      const large = image?.sizes?.large;
 
       return {
         id: `gallery-${index}`,
         imageUrl: image?.url,
+        thumbUrl: typeof large === "string" ? large : image?.url,
+        alt: acfStr(image?.alt),
         title: acfStr(row.add_a_title),
-        category: acfStr(row.add_category),
         location:
           acfStr(row.add_a_place) ??
           acfStr(row.add_a_location) ??
@@ -33,12 +39,4 @@ export function parseGalleryItems(acf?: Record<string, unknown> | null): Gallery
       };
     })
     .filter((item) => item.imageUrl || item.title);
-}
-
-export function getGalleryCategories(items: GalleryItem[]): string[] {
-  const categories = new Set<string>();
-  for (const item of items) {
-    if (item.category) categories.add(item.category);
-  }
-  return Array.from(categories).sort((a, b) => a.localeCompare(b));
 }

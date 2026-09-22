@@ -1,3 +1,5 @@
+import type { GoogleRatingSummary } from "@/lib/google-reviews";
+
 export type RatingCard = {
   id: string;
   filledStars: number;
@@ -17,7 +19,10 @@ export function getFilledStarCount(rateTheStar: unknown): number {
   return Math.min(5, Math.max(0, Math.round(value / 20)));
 }
 
-export function parseRatingCards(acf?: Record<string, unknown> | null): RatingCard[] {
+export function parseRatingCards(
+  acf?: Record<string, unknown> | null,
+  googleSummary?: GoogleRatingSummary | null
+): RatingCard[] {
   const items = acf?.add_a_rating_card;
   if (!Array.isArray(items)) return [];
 
@@ -30,6 +35,18 @@ export function parseRatingCards(acf?: Record<string, unknown> | null): RatingCa
       const starIcon = row.rating_stars as { url?: string } | undefined;
 
       if (!rating && !source && !reviewsCount) return null;
+
+      // Keep the Google card in sync with the live rating from the Google Reviews plugin.
+      if (googleSummary && source?.toLowerCase().includes("google")) {
+        return {
+          id: `rating-card-${index}`,
+          filledStars: Math.round(Number(googleSummary.rating)),
+          starIconUrl: starIcon?.url,
+          rating: googleSummary.rating,
+          source,
+          reviewsCount: `${googleSummary.total} review${googleSummary.total === 1 ? "" : "s"}`,
+        };
+      }
 
       return {
         id: `rating-card-${index}`,

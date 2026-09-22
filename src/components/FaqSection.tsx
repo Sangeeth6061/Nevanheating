@@ -69,9 +69,10 @@ export default function FaqSection({ groups }: FaqSectionProps) {
 
                       {isOpen && (
                         <div className="px-5 pb-5 md:px-6 md:pb-6 -mt-1">
-                          <p className="text-[#64748B] text-sm md:text-[15px] leading-relaxed">
-                            {item.answer}
-                          </p>
+                          <div
+                            className="wp-rich-text text-[#64748B] text-sm md:text-[15px] leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: item.answer }}
+                          />
                         </div>
                       )}
                     </div>
